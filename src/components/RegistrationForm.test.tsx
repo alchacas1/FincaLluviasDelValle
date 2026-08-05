@@ -82,6 +82,35 @@ describe('RegistrationForm', () => {
     expect(onSubmit.mock.calls[0][0]).not.toHaveProperty('responsibleName')
   })
 
+  it('allows group members to include an identification after the name', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(true)
+    render(<RegistrationForm onSubmit={onSubmit} isSaving={false} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('radio', { name: 'Grupo' }))
+
+    expect(screen.getByText('Formato recomendado: nombre apellido1 apellido2 - cédula.')).toBeVisible()
+
+    await fillBaseFields(user)
+    fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
+      target: {
+        value: [
+          '1. alvaro chaves cascante - 117910947',
+          '2. josue jauna pere - 12513615',
+        ].join('\n'),
+      },
+    })
+    await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      entryMode: 'group',
+      groupMembers: [
+        'alvaro chaves cascante - 117910947',
+        'josue jauna pere - 12513615',
+      ],
+    }))
+  })
+
   it('numbers group member lines inside the textarea after line breaks are entered', async () => {
     render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
     const user = userEvent.setup()

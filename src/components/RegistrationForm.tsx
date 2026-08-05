@@ -314,14 +314,19 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
             <p className="field-help" id="group-members-help">
               Agrega cada integrante en una línea distinta. Presiona Enter después de cada nombre para verlo en la lista.
             </p>
+            <p className="field-help" id="group-members-format-help">
+              Formato recomendado: nombre apellido1 apellido2 - cédula.
+            </p>
             <textarea
               id="group-members"
               value={values.groupMembersText}
               maxLength={500}
+              placeholder={'alvaro chaves cascante - 117910947\njosue jauna pere - 12513615'}
               onChange={(event) => updateValue('groupMembersText', formatGroupMembersText(event.target.value))}
               aria-invalid={Boolean(errors.groupMembers)}
               aria-describedby={[
                 'group-members-help',
+                'group-members-format-help',
                 getFieldDescribedBy(errors.groupMembers, 'groupMembers'),
               ].filter(Boolean).join(' ')}
             />
