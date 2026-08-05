@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -56,7 +56,7 @@ describe('RegistrationForm', () => {
     }))
   })
 
-  it('uses the primary visitor as group responsible and normalizes one member per line', async () => {
+  it('uses the primary visitor as group responsible and saves numbered lines as clean names', async () => {
     const onSubmit = vi.fn().mockResolvedValue(true)
     render(<RegistrationForm onSubmit={onSubmit} isSaving={false} />)
     const user = userEvent.setup()
@@ -68,7 +68,7 @@ describe('RegistrationForm', () => {
 
     await fillBaseFields(user)
     fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
-      target: { value: '  Eva  \n\n Mateo ' },
+      target: { value: '1. Eva\n2. Mateo' },
     })
     await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
 
@@ -82,7 +82,7 @@ describe('RegistrationForm', () => {
     expect(onSubmit.mock.calls[0][0]).not.toHaveProperty('responsibleName')
   })
 
-  it('shows group member instructions and a numbered preview after names are entered', async () => {
+  it('numbers group member lines inside the textarea after line breaks are entered', async () => {
     render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
     const user = userEvent.setup()
 
@@ -90,17 +90,24 @@ describe('RegistrationForm', () => {
 
     expect(screen.getByText('Agrega cada integrante en una línea distinta. Presiona Enter después de cada nombre para verlo en la lista.')).toBeVisible()
 
-    fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
-      target: { value: 'Alvaro Chaves Cascante\njuanito mora perez\nalejandro perez sandoval' },
+    const membersInput = screen.getByLabelText('Nombres del grupo')
+
+    fireEvent.change(membersInput, {
+      target: { value: 'alvaro chaves cascante\n' },
     })
 
-    const membersPreview = screen.getByRole('list', { name: 'Integrantes agregados' })
-    const listedMembers = within(membersPreview).getAllByRole('listitem')
+    expect(membersInput).toHaveValue('1. alvaro chaves cascante\n2. ')
 
-    expect(listedMembers).toHaveLength(3)
-    expect(listedMembers[0]).toHaveTextContent('Alvaro Chaves Cascante')
-    expect(listedMembers[1]).toHaveTextContent('juanito mora perez')
-    expect(listedMembers[2]).toHaveTextContent('alejandro perez sandoval')
+    fireEvent.change(membersInput, {
+      target: { value: '1. alvaro chaves cascante\n2. juanito mora perez\n3. alejandro perez sandoval' },
+    })
+
+    expect(membersInput).toHaveValue([
+      '1. alvaro chaves cascante',
+      '2. juanito mora perez',
+      '3. alejandro perez sandoval',
+    ].join('\n'))
+    expect(screen.queryByRole('list', { name: 'Integrantes agregados' })).not.toBeInTheDocument()
   })
 
   it('keeps completed values when saving fails', async () => {

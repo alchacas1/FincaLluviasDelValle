@@ -356,23 +356,6 @@ a:focus-visible {
   gap: 18px;
 }
 
-.group-members-preview {
-  display: grid;
-  margin: 0;
-  padding: 12px 12px 12px 34px;
-  border: 1px solid rgb(222 210 191 / 88%);
-  border-radius: 11px;
-  background: rgb(248 241 228 / 58%);
-  color: var(--ink);
-  gap: 6px;
-  font-size: 0.9rem;
-}
-
-.group-members-preview li::marker {
-  color: var(--coffee-700);
-  font-weight: 700;
-}
-
 .form-actions {
   display: flex;
   grid-column: 1 / -1;

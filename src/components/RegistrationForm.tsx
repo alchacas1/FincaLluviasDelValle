@@ -65,6 +65,8 @@ const errorIds: Record<ErrorField, string> = {
   groupMembers: 'group-members-error',
 }
 
+const memberNumberPattern = /^\s*\d+\.\s*/
+
 function createInitialValues(): FormValues {
   return {
     firstName: '',
@@ -87,17 +89,39 @@ function getFieldDescribedBy(error: string | undefined, field: ErrorField): stri
   return error ? getErrorId(field) : undefined
 }
 
+function stripMemberNumber(member: string): string {
+  return member.replace(memberNumberPattern, '').trim()
+}
+
 function parseGroupMembers(groupMembersText: string): string[] {
   return groupMembersText
     .split(/\r?\n/)
-    .map((member) => member.trim())
+    .map(stripMemberNumber)
     .filter(Boolean)
+}
+
+function formatGroupMembersText(groupMembersText: string): string {
+  const normalizedText = groupMembersText.replace(/\r\n/g, '\n')
+
+  if (!normalizedText.includes('\n')) {
+    return groupMembersText
+  }
+
+  const completedMembers = normalizedText
+    .split('\n')
+    .map(stripMemberNumber)
+    .filter(Boolean)
+  const shouldAddNextLine = normalizedText.endsWith('\n')
+  const numberedMembers = shouldAddNextLine ? [...completedMembers, ''] : completedMembers
+
+  return numberedMembers
+    .map((member, index) => `${index + 1}. ${member}`)
+    .join('\n')
 }
 
 export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) {
   const [values, setValues] = useState<FormValues>(createInitialValues)
   const [errors, setErrors] = useState<FormErrors>({})
-  const previewGroupMembers = parseGroupMembers(values.groupMembersText)
 
   const updateValue = <Key extends keyof FormValues>(key: Key, value: FormValues[Key]) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -294,20 +318,13 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
               id="group-members"
               value={values.groupMembersText}
               maxLength={500}
-              onChange={(event) => updateValue('groupMembersText', event.target.value)}
+              onChange={(event) => updateValue('groupMembersText', formatGroupMembersText(event.target.value))}
               aria-invalid={Boolean(errors.groupMembers)}
               aria-describedby={[
                 'group-members-help',
                 getFieldDescribedBy(errors.groupMembers, 'groupMembers'),
               ].filter(Boolean).join(' ')}
             />
-            {previewGroupMembers.length > 0 && (
-              <ol className="group-members-preview" aria-label="Integrantes agregados">
-                {previewGroupMembers.map((member, index) => (
-                  <li key={`${member}-${index}`}>{member}</li>
-                ))}
-              </ol>
-            )}
           </div>
         </div>
       )}
