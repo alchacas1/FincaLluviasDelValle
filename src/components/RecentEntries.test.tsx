@@ -7,13 +7,14 @@ import { RecentEntries } from './RecentEntries'
 function createEntry(index: number, entryMode: VisitorEntry['entryMode'] = 'individual'): VisitorEntry {
   return {
     id: `visitor-${index}`,
-    name: `Visitante ${index}`,
+    firstName: 'Visitante',
+    firstLastName: `${index}`,
+    secondLastName: 'Solis',
     identification: `1-000${index}`,
     visitDate: '2026-08-04',
     nationality: 'Costa Rica',
     visitorType: 'adult',
     entryMode,
-    responsibleName: entryMode === 'group' ? 'Laura Gómez' : undefined,
     groupMembers: entryMode === 'group' ? ['Eva', 'Mateo'] : [],
     createdAt: `2026-08-04T0${index}:00:00.000Z`,
   }
@@ -25,22 +26,24 @@ describe('RecentEntries', () => {
 
     render(<RecentEntries entries={entries} />)
 
-    expect(screen.getByText('Visitante 1')).toBeVisible()
-    expect(screen.getByText('Visitante 5')).toBeVisible()
-    expect(screen.queryByText('Visitante 6')).not.toBeInTheDocument()
+    expect(screen.getByText('Visitante 1 Solis')).toBeVisible()
+    expect(screen.getByText('Visitante 5 Solis')).toBeVisible()
+    expect(screen.queryByText('Visitante 6 Solis')).not.toBeInTheDocument()
   })
 
-  it('shows group mode and its responsible person', () => {
+  it('shows group mode, the primary visitor as responsible and its members', () => {
     render(<RecentEntries entries={[createEntry(1, 'group')]} />)
 
     expect(screen.getByText('Grupo')).toBeVisible()
-    expect(screen.getByText('Laura Gómez')).toBeVisible()
+    expect(screen.getAllByText('Visitante 1 Solis')).toHaveLength(2)
+    expect(screen.getByText('Eva')).toBeVisible()
+    expect(screen.getByText('Mateo')).toBeVisible()
   })
 
-  it('shows individual mode and a dash when it has no responsible person', () => {
+  it('shows individual mode without group members', () => {
     render(<RecentEntries entries={[createEntry(1)]} />)
 
     expect(screen.getByText('Individual')).toBeVisible()
-    expect(screen.getByText('—')).toBeVisible()
+    expect(screen.queryByText('Integrantes')).not.toBeInTheDocument()
   })
 })

@@ -11,24 +11,35 @@ interface RegistrationFormProps {
 }
 
 interface FormValues {
-  name: string
+  firstName: string
+  firstLastName: string
+  secondLastName: string
   identification: string
   visitDate: string
   nationality: string
   visitorType: VisitorType
   entryMode: EntryMode
-  responsibleName: string
   groupMembersText: string
 }
 
-type FormErrors = Partial<Record<'name' | 'identification' | 'visitDate' | 'nationality' | 'responsibleName' | 'groupMembers', string>>
+type ErrorField =
+  | 'firstName'
+  | 'firstLastName'
+  | 'secondLastName'
+  | 'identification'
+  | 'visitDate'
+  | 'nationality'
+  | 'groupMembers'
+
+type FormErrors = Partial<Record<ErrorField, string>>
 
 const requiredMessages = {
-  name: 'Ingresa el nombre completo.',
+  firstName: 'Ingresa el nombre.',
+  firstLastName: 'Ingresa el primer apellido.',
+  secondLastName: 'Ingresa el segundo apellido.',
   identification: 'Ingresa la identificación.',
   visitDate: 'Selecciona la fecha.',
   nationality: 'Selecciona la nacionalidad.',
-  responsibleName: 'Ingresa la persona encargada.',
   groupMembers: 'Agrega al menos un integrante del grupo.',
 } as const
 
@@ -44,28 +55,35 @@ const nationalities = [
   'Otra',
 ]
 
+const errorIds: Record<ErrorField, string> = {
+  firstName: 'first-name-error',
+  firstLastName: 'first-last-name-error',
+  secondLastName: 'second-last-name-error',
+  identification: 'identification-error',
+  visitDate: 'visitDate-error',
+  nationality: 'nationality-error',
+  groupMembers: 'group-members-error',
+}
+
 function createInitialValues(): FormValues {
   return {
-    name: '',
+    firstName: '',
+    firstLastName: '',
+    secondLastName: '',
     identification: '',
     visitDate: getLocalDateInputValue(),
     nationality: '',
     visitorType: 'adult',
     entryMode: 'individual',
-    responsibleName: '',
     groupMembersText: '',
   }
 }
 
-function getErrorId(field: keyof FormErrors): string {
-  return field === 'responsibleName'
-    ? 'responsible-name-error'
-    : field === 'groupMembers'
-      ? 'group-members-error'
-      : `${field}-error`
+function getErrorId(field: ErrorField): string {
+  return errorIds[field]
 }
 
-function getFieldDescribedBy(error: string | undefined, field: keyof FormErrors): string | undefined {
+function getFieldDescribedBy(error: string | undefined, field: ErrorField): string | undefined {
   return error ? getErrorId(field) : undefined
 }
 
@@ -85,11 +103,12 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const name = values.name.trim()
+    const firstName = values.firstName.trim()
+    const firstLastName = values.firstLastName.trim()
+    const secondLastName = values.secondLastName.trim()
     const identification = values.identification.trim()
     const visitDate = values.visitDate.trim()
     const nationality = values.nationality.trim()
-    const responsibleName = values.responsibleName.trim()
     const groupMembers = values.groupMembersText
       .split(/\r?\n/)
       .map((member) => member.trim())
@@ -97,13 +116,12 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
 
     const nextErrors: FormErrors = {}
 
-    if (!name) nextErrors.name = requiredMessages.name
+    if (!firstName) nextErrors.firstName = requiredMessages.firstName
+    if (!firstLastName) nextErrors.firstLastName = requiredMessages.firstLastName
+    if (!secondLastName) nextErrors.secondLastName = requiredMessages.secondLastName
     if (!identification) nextErrors.identification = requiredMessages.identification
     if (!visitDate) nextErrors.visitDate = requiredMessages.visitDate
     if (!nationality) nextErrors.nationality = requiredMessages.nationality
-    if (values.entryMode === 'group' && !responsibleName) {
-      nextErrors.responsibleName = requiredMessages.responsibleName
-    }
     if (values.entryMode === 'group' && groupMembers.length === 0) {
       nextErrors.groupMembers = requiredMessages.groupMembers
     }
@@ -112,13 +130,14 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
     if (Object.keys(nextErrors).length > 0) return
 
     const wasSaved = await onSubmit({
-      name,
+      firstName,
+      firstLastName,
+      secondLastName,
       identification,
       visitDate,
       nationality,
       visitorType: values.visitorType,
       entryMode: values.entryMode,
-      ...(values.entryMode === 'group' ? { responsibleName } : {}),
       groupMembers: values.entryMode === 'group' ? groupMembers : [],
     })
 
@@ -131,20 +150,42 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         <div className="form-errors" role="alert">
           <ul>
             {Object.entries(errors).map(([field, message]) => (
-              <li key={field} id={getErrorId(field as keyof FormErrors)}>{message}</li>
+              <li key={field} id={getErrorId(field as ErrorField)}>{message}</li>
             ))}
           </ul>
         </div>
       )}
 
       <div className="form-field">
-        <label htmlFor="name">Nombre</label>
+        <label htmlFor="first-name">Nombre</label>
         <input
-          id="name"
-          value={values.name}
-          onChange={(event) => updateValue('name', event.target.value)}
-          aria-invalid={Boolean(errors.name)}
-          aria-describedby={getFieldDescribedBy(errors.name, 'name')}
+          id="first-name"
+          value={values.firstName}
+          onChange={(event) => updateValue('firstName', event.target.value)}
+          aria-invalid={Boolean(errors.firstName)}
+          aria-describedby={getFieldDescribedBy(errors.firstName, 'firstName')}
+        />
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="first-last-name">Primer apellido</label>
+        <input
+          id="first-last-name"
+          value={values.firstLastName}
+          onChange={(event) => updateValue('firstLastName', event.target.value)}
+          aria-invalid={Boolean(errors.firstLastName)}
+          aria-describedby={getFieldDescribedBy(errors.firstLastName, 'firstLastName')}
+        />
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="second-last-name">Segundo apellido</label>
+        <input
+          id="second-last-name"
+          value={values.secondLastName}
+          onChange={(event) => updateValue('secondLastName', event.target.value)}
+          aria-invalid={Boolean(errors.secondLastName)}
+          aria-describedby={getFieldDescribedBy(errors.secondLastName, 'secondLastName')}
         />
       </div>
 
@@ -239,17 +280,6 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
 
       {values.entryMode === 'group' && (
         <div className="group-fields">
-          <div className="form-field">
-            <label htmlFor="responsible-name">Persona encargada</label>
-            <input
-              id="responsible-name"
-              value={values.responsibleName}
-              onChange={(event) => updateValue('responsibleName', event.target.value)}
-              aria-invalid={Boolean(errors.responsibleName)}
-              aria-describedby={getFieldDescribedBy(errors.responsibleName, 'responsibleName')}
-            />
-          </div>
-
           <div className="form-field">
             <label htmlFor="group-members">Nombres del grupo</label>
             <textarea

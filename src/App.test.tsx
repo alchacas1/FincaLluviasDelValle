@@ -15,7 +15,9 @@ vi.mock('./services/visitorStorage', () => ({
 
 const savedEntry: VisitorEntry = {
   id: 'saved-visitor',
-  name: 'Ana Pérez',
+  firstName: 'Ana',
+  firstLastName: 'Perez',
+  secondLastName: 'Solis',
   identification: '1-2345-6789',
   visitDate: '2026-08-04',
   nationality: 'Costa Rica',
@@ -28,7 +30,9 @@ const savedEntry: VisitorEntry = {
 async function fillAndSubmitIndividualVisitor() {
   const user = userEvent.setup()
 
-  await user.type(screen.getByLabelText('Nombre'), savedEntry.name)
+  await user.type(screen.getByLabelText('Nombre'), savedEntry.firstName)
+  await user.type(screen.getByLabelText('Primer apellido'), savedEntry.firstLastName)
+  await user.type(screen.getByLabelText('Segundo apellido'), savedEntry.secondLastName)
   await user.type(screen.getByLabelText('Identificación'), savedEntry.identification)
   await user.selectOptions(screen.getByLabelText('Nacionalidad'), savedEntry.nationality)
   await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
@@ -48,7 +52,7 @@ describe('App', () => {
 
     expect(visitorStorage.create).toHaveBeenCalledOnce()
     expect(await screen.findByText('Ingreso registrado correctamente.')).toBeVisible()
-    expect(screen.getByText(savedEntry.name)).toBeVisible()
+    expect(screen.getByText('Ana Perez Solis')).toBeVisible()
   })
 
   it('announces a storage failure without adding the visitor', async () => {

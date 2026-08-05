@@ -6,6 +6,15 @@ interface RecentEntriesProps {
 
 const dateFormatter = new Intl.DateTimeFormat('es-CR')
 
+function getVisitorFullName(entry: VisitorEntry): string {
+  const separatedName = [entry.firstName, entry.firstLastName, entry.secondLastName]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(' ')
+
+  return separatedName || entry.name || 'Visitante sin nombre'
+}
+
 export function RecentEntries({ entries }: RecentEntriesProps) {
   const recentEntries = entries.slice(0, 5)
 
@@ -18,29 +27,45 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
         <p className="empty-state">Aún no hay ingresos registrados.</p>
       ) : (
         <ul className="entries-list">
-          {recentEntries.map((entry) => (
-            <li className="entry-item" key={entry.id}>
-              <div className="entry-heading">
-                <h3>{entry.name}</h3>
-              </div>
-              <dl className="entry-details">
-                <div>
-                  <dt>Fecha</dt>
-                  <dd>{dateFormatter.format(new Date(entry.createdAt))}</dd>
+          {recentEntries.map((entry) => {
+            const visitorName = getVisitorFullName(entry)
+
+            return (
+              <li className="entry-item" key={entry.id}>
+                <div className="entry-heading">
+                  <h3>{visitorName}</h3>
                 </div>
-                <div>
-                  <dt>Modalidad</dt>
-                  <dd className="entry-mode-badge" data-mode={entry.entryMode}>
-                    {entry.entryMode === 'group' ? 'Grupo' : 'Individual'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Responsable</dt>
-                  <dd>{entry.responsibleName || '—'}</dd>
-                </div>
-              </dl>
-            </li>
-          ))}
+                <dl className="entry-details">
+                  <div>
+                    <dt>Fecha</dt>
+                    <dd>{dateFormatter.format(new Date(entry.createdAt))}</dd>
+                  </div>
+                  <div>
+                    <dt>Modalidad</dt>
+                    <dd className="entry-mode-badge" data-mode={entry.entryMode}>
+                      {entry.entryMode === 'group' ? 'Grupo' : 'Individual'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Encargado</dt>
+                    <dd>{entry.entryMode === 'group' ? visitorName : '—'}</dd>
+                  </div>
+                  {entry.entryMode === 'group' && entry.groupMembers.length > 0 && (
+                    <div className="entry-members">
+                      <dt>Integrantes</dt>
+                      <dd>
+                        <ul>
+                          {entry.groupMembers.map((member) => (
+                            <li key={member}>{member}</li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </li>
+            )
+          })}
         </ul>
       )}
     </section>
