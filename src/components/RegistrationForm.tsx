@@ -321,7 +321,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
               id="group-members"
               value={values.groupMembersText}
               maxLength={500}
-              placeholder={'alvaro chaves cascante - 117910947\njosue jauna pere - 12513615'}
+              placeholder={'Nombre Apellido1 Apellido2 - Cédula\nNombre Apellido1 Apellido2 - Cédula'}
               onChange={(event) => updateValue('groupMembersText', formatGroupMembersText(event.target.value))}
               aria-invalid={Boolean(errors.groupMembers)}
               aria-describedby={[

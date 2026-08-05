@@ -90,13 +90,21 @@ describe('RegistrationForm', () => {
     await user.click(screen.getByRole('radio', { name: 'Grupo' }))
 
     expect(screen.getByText('Formato recomendado: nombre apellido1 apellido2 - cédula.')).toBeVisible()
+    expect(screen.getByLabelText('Nombres del grupo')).toHaveAttribute(
+      'placeholder',
+      ['Nombre Apellido1 Apellido2 - Cédula', 'Nombre Apellido1 Apellido2 - Cédula'].join('\n'),
+    )
+    expect(screen.getByLabelText('Nombres del grupo')).not.toHaveAttribute(
+      'placeholder',
+      expect.stringContaining('alvaro chaves cascante'),
+    )
 
     await fillBaseFields(user)
     fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
       target: {
         value: [
-          '1. alvaro chaves cascante - 117910947',
-          '2. josue jauna pere - 12513615',
+          '1. nombre apellido1 apellido2 - 123456789',
+          '2. nombre apellido1 apellido2 - 123456789',
         ].join('\n'),
       },
     })
@@ -105,8 +113,8 @@ describe('RegistrationForm', () => {
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       entryMode: 'group',
       groupMembers: [
-        'alvaro chaves cascante - 117910947',
-        'josue jauna pere - 12513615',
+        'nombre apellido1 apellido2 - 123456789',
+        'nombre apellido1 apellido2 - 123456789',
       ],
     }))
   })
