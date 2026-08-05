@@ -13,6 +13,22 @@ vi.mock('./services/visitorStorage', () => ({
   },
 }))
 
+function createEntry(index: number): VisitorEntry {
+  return {
+    id: `visitor-${index}`,
+    firstName: `Visitante`,
+    firstLastName: `${index}`,
+    secondLastName: 'Solis',
+    identification: `1-000${index}`,
+    visitDate: '2026-08-04',
+    nationality: 'Costa Rica',
+    visitorType: 'adult',
+    entryMode: 'individual',
+    groupMembers: [],
+    createdAt: `2026-08-04T0${index}:00:00.000Z`,
+  }
+}
+
 const savedEntry: VisitorEntry = {
   id: 'saved-visitor',
   firstName: 'Ana',
@@ -65,13 +81,29 @@ describe('App', () => {
     expect(screen.queryByText('Ingreso registrado correctamente.')).not.toBeInTheDocument()
   })
 
-  it('marks only the current navigation item as the active page', async () => {
+  it('navigates to history and shows all stored records', async () => {
+    const user = userEvent.setup()
+    vi.mocked(visitorStorage.list).mockResolvedValue(Array.from({ length: 6 }, (_, index) => createEntry(index + 1)))
+
+    render(<App />)
+
+    await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
+    expect(screen.getByRole('button', { name: 'Registro de ingreso' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByText('Visitante 6 Solis')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Historial' }))
+
+    expect(screen.getByRole('heading', { name: 'Historial' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Historial' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByText('Visitante 6 Solis')).toBeVisible()
+    expect(screen.getByText('Mostrando 6 de 6 registros')).toBeVisible()
+  })
+
+  it('keeps information disabled in the navigation', async () => {
     render(<App />)
 
     await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
 
-    expect(screen.getByRole('link', { name: 'Registro de ingreso' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByText('Historial')).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText('Información')).toHaveAttribute('aria-disabled', 'true')
   })
 })

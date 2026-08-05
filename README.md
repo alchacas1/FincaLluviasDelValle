@@ -23,6 +23,7 @@ Vite mostrara la direccion local de la aplicacion en la terminal. Por defecto su
 - En modalidad `Grupo`, no se solicita una persona encargada adicional: el visitante principal queda como encargado.
 - Los integrantes del grupo se escriben en el campo `Nombres del grupo`, uno por linea.
 - La lista de ingresos recientes muestra la modalidad, el encargado derivado del visitante principal y los integrantes cuando aplica.
+- El tab `Historial` muestra todos los registros guardados y permite filtrar por fecha, nacionalidad, modalidad y busqueda por texto.
 
 ## Comandos disponibles
 
