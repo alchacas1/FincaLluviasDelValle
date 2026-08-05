@@ -431,9 +431,24 @@ a:focus-visible {
 
 .group-member-add-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 2fr) minmax(160px, 1.1fr) minmax(180px, 1fr) auto;
+  /* make columns more balanced and avoid forcing excessive minimum widths */
+  grid-template-columns: minmax(160px, 1.6fr) minmax(120px, 1fr) minmax(120px, 0.9fr) auto;
   align-items: end;
-  gap: 16px;
+  gap: 12px;
+}
+
+/* Stack fields on narrow viewports to prevent horizontal scrolling */
+@media (max-width: 880px) {
+  .group-member-add-grid {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .add-member-button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .member-type-control {
