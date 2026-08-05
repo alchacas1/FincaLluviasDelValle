@@ -1,6 +1,15 @@
 export type VisitorType = 'child' | 'adult'
 export type EntryMode = 'individual' | 'group'
 
+export interface GroupMember {
+  id: string
+  fullName: string
+  identification: string
+  visitorType: VisitorType
+}
+
+export type GroupMemberEntry = GroupMember | string
+
 export interface VisitorDraft {
   firstName: string
   firstLastName: string
@@ -10,7 +19,7 @@ export interface VisitorDraft {
   nationality: string
   visitorType: VisitorType
   entryMode: EntryMode
-  groupMembers: string[]
+  groupMembers: GroupMemberEntry[]
 }
 
 export interface VisitorEntry extends VisitorDraft {

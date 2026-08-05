@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 import type { EntryMode, VisitorEntry } from '../types/visitor'
+import { formatGroupMember, getGroupMemberKey } from '../utils/groupMembers'
 import {
   filterHistoryEntries,
   getAvailableNationalities,
@@ -147,7 +148,7 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
           <h3 id="modal-members-heading">Personas del grupo</h3>
           <ol aria-label="Integrantes del grupo">
             {selectedGroupEntry.groupMembers.map((member, index) => (
-              <li key={`${member}-${index}`}>{member}</li>
+              <li key={getGroupMemberKey(member, index)}>{formatGroupMember(member)}</li>
             ))}
           </ol>
         </section>
@@ -250,7 +251,7 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
                     {entry.entryMode === 'group' && (
                       <div className="history-members">
                         <dt>Integrantes</dt>
-                        <dd>{entry.groupMembers.join(', ')}</dd>
+                        <dd>{entry.groupMembers.map(formatGroupMember).join(', ')}</dd>
                       </div>
                     )}
                   </dl>

@@ -1,9 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { RegistrationForm } from './RegistrationForm'
 import { getLocalDateInputValue } from '../utils/date'
+import { RegistrationForm } from './RegistrationForm'
 
 async function fillBaseFields(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Nombre'), 'Ana')
@@ -56,7 +56,7 @@ describe('RegistrationForm', () => {
     }))
   })
 
-  it('uses the primary visitor as group responsible and saves numbered lines as clean names', async () => {
+  it('uses the primary visitor as group responsible and saves added members as structured data', async () => {
     const onSubmit = vi.fn().mockResolvedValue(true)
     render(<RegistrationForm onSubmit={onSubmit} isSaving={false} />)
     const user = userEvent.setup()
@@ -64,12 +64,13 @@ describe('RegistrationForm', () => {
     await user.click(screen.getByRole('radio', { name: 'Grupo' }))
 
     expect(screen.queryByLabelText('Persona encargada')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Nombres del grupo')).toHaveAttribute('maxLength', '500')
+    expect(screen.getByRole('heading', { name: 'Integrantes del grupo' })).toBeVisible()
 
     await fillBaseFields(user)
-    fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
-      target: { value: '1. Eva\n2. Mateo' },
-    })
+    await user.type(screen.getByLabelText('Nombre completo'), 'Maria Fernanda Lopez Perez')
+    await user.type(screen.getByLabelText('Cédula del integrante'), '1234567890')
+    await user.click(within(screen.getByRole('group', { name: 'Adulto / Niño' })).getByRole('radio', { name: 'Niño' }))
+    await user.click(screen.getByRole('button', { name: 'Agregar integrante' }))
     await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
 
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
@@ -77,74 +78,55 @@ describe('RegistrationForm', () => {
       firstName: 'Ana',
       firstLastName: 'Perez',
       secondLastName: 'Solis',
-      groupMembers: ['Eva', 'Mateo'],
+      groupMembers: [
+        expect.objectContaining({
+          fullName: 'Maria Fernanda Lopez Perez',
+          identification: '1234567890',
+          visitorType: 'child',
+        }),
+      ],
     }))
     expect(onSubmit.mock.calls[0][0]).not.toHaveProperty('responsibleName')
   })
 
-  it('allows group members to include an identification after the name', async () => {
+  it('adds and removes group members from the visible list', async () => {
     const onSubmit = vi.fn().mockResolvedValue(true)
     render(<RegistrationForm onSubmit={onSubmit} isSaving={false} />)
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('radio', { name: 'Grupo' }))
 
-    expect(screen.getByText('Formato recomendado: nombre apellido1 apellido2 - cédula.')).toBeVisible()
-    expect(screen.getByLabelText('Nombres del grupo')).toHaveAttribute(
-      'placeholder',
-      ['Nombre Apellido1 Apellido2 - Cédula', 'Nombre Apellido1 Apellido2 - Cédula'].join('\n'),
-    )
-    expect(screen.getByLabelText('Nombres del grupo')).not.toHaveAttribute(
-      'placeholder',
-      expect.stringContaining('alvaro chaves cascante'),
-    )
+    expect(screen.getByText('Agrega cada integrante en una línea. Presiona “Agregar” para incluirlo en la lista.')).toBeVisible()
+    expect(screen.getByText('Formato recomendado: nombre completo – cédula.')).toBeVisible()
 
-    await fillBaseFields(user)
-    fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
-      target: {
-        value: [
-          '1. nombre apellido1 apellido2 - 123456789',
-          '2. nombre apellido1 apellido2 - 123456789',
-        ].join('\n'),
-      },
-    })
-    await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
+    await user.type(screen.getByLabelText('Nombre completo'), 'Maria Fernanda Lopez Perez')
+    await user.type(screen.getByLabelText('Cédula del integrante'), '1234567890')
+    await user.click(within(screen.getByRole('group', { name: 'Adulto / Niño' })).getByRole('radio', { name: 'Niño' }))
+    await user.click(screen.getByRole('button', { name: 'Agregar integrante' }))
 
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
-      entryMode: 'group',
-      groupMembers: [
-        'nombre apellido1 apellido2 - 123456789',
-        'nombre apellido1 apellido2 - 123456789',
-      ],
-    }))
+    expect(screen.getByRole('heading', { name: 'Integrantes agregados (1)' })).toBeVisible()
+    expect(screen.getByText('Maria Fernanda Lopez Perez')).toBeVisible()
+    expect(screen.getByText('1234567890')).toBeVisible()
+    expect(screen.getAllByText('Niño').some((element) => element.classList.contains('member-type-badge'))).toBe(true)
+    expect(screen.getByLabelText('Nombre completo')).toHaveValue('')
+    expect(screen.getByLabelText('Cédula del integrante')).toHaveValue('')
+
+    await user.click(screen.getByRole('button', { name: 'Eliminar integrante Maria Fernanda Lopez Perez' }))
+
+    expect(screen.getByRole('heading', { name: 'Integrantes agregados (0)' })).toBeVisible()
+    expect(screen.queryByText('Maria Fernanda Lopez Perez')).not.toBeInTheDocument()
+    expect(onSubmit).not.toHaveBeenCalled()
   })
 
-  it('numbers group member lines inside the textarea after line breaks are entered', async () => {
+  it('requires at least one group member before submitting a group entry', async () => {
     render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('radio', { name: 'Grupo' }))
+    await fillBaseFields(user)
+    await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
 
-    expect(screen.getByText('Agrega cada integrante en una línea distinta. Presiona Enter después de cada nombre para verlo en la lista.')).toBeVisible()
-
-    const membersInput = screen.getByLabelText('Nombres del grupo')
-
-    fireEvent.change(membersInput, {
-      target: { value: 'alvaro chaves cascante\n' },
-    })
-
-    expect(membersInput).toHaveValue('1. alvaro chaves cascante\n2. ')
-
-    fireEvent.change(membersInput, {
-      target: { value: '1. alvaro chaves cascante\n2. juanito mora perez\n3. alejandro perez sandoval' },
-    })
-
-    expect(membersInput).toHaveValue([
-      '1. alvaro chaves cascante',
-      '2. juanito mora perez',
-      '3. alejandro perez sandoval',
-    ].join('\n'))
-    expect(screen.queryByRole('list', { name: 'Integrantes agregados' })).not.toBeInTheDocument()
+    expect((await screen.findAllByText('Agrega al menos un integrante del grupo.'))[0]).toBeVisible()
   })
 
   it('keeps completed values when saving fails', async () => {

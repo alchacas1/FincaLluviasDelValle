@@ -1,4 +1,5 @@
 import type { VisitorEntry } from '../types/visitor'
+import { formatGroupMember, getGroupMemberKey } from '../utils/groupMembers'
 
 interface RecentEntriesProps {
   entries: VisitorEntry[]
@@ -57,8 +58,8 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
                       <dt>Integrantes</dt>
                       <dd>
                         <ul>
-                          {entry.groupMembers.map((member) => (
-                            <li key={member}>{member}</li>
+                          {entry.groupMembers.map((member, index) => (
+                            <li key={getGroupMemberKey(member, index)}>{formatGroupMember(member)}</li>
                           ))}
                         </ul>
                       </dd>

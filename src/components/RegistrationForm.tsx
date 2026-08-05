@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Baby, UserRound, UsersRound } from 'lucide-react'
+import { Baby, Plus, ShieldCheck, Trash2, UserRound, UserRoundPlus, UsersRound } from 'lucide-react'
 
+import type { EntryMode, GroupMember, VisitorDraft, VisitorType } from '../types/visitor'
+import { getGroupMemberInitials } from '../utils/groupMembers'
 import { getLocalDateInputValue } from '../utils/date'
-import type { EntryMode, VisitorDraft, VisitorType } from '../types/visitor'
 
 interface RegistrationFormProps {
   onSubmit: (draft: VisitorDraft) => Promise<boolean>
@@ -19,7 +20,10 @@ interface FormValues {
   nationality: string
   visitorType: VisitorType
   entryMode: EntryMode
-  groupMembersText: string
+  memberFullName: string
+  memberIdentification: string
+  memberVisitorType: VisitorType
+  groupMembers: GroupMember[]
 }
 
 type ErrorField =
@@ -65,8 +69,6 @@ const errorIds: Record<ErrorField, string> = {
   groupMembers: 'group-members-error',
 }
 
-const memberNumberPattern = /^\s*\d+\.\s*/
-
 function createInitialValues(): FormValues {
   return {
     firstName: '',
@@ -77,7 +79,10 @@ function createInitialValues(): FormValues {
     nationality: '',
     visitorType: 'adult',
     entryMode: 'individual',
-    groupMembersText: '',
+    memberFullName: '',
+    memberIdentification: '',
+    memberVisitorType: 'adult',
+    groupMembers: [],
   }
 }
 
@@ -89,39 +94,10 @@ function getFieldDescribedBy(error: string | undefined, field: ErrorField): stri
   return error ? getErrorId(field) : undefined
 }
 
-function stripMemberNumber(member: string): string {
-  return member.replace(memberNumberPattern, '').trim()
-}
-
-function parseGroupMembers(groupMembersText: string): string[] {
-  return groupMembersText
-    .split(/\r?\n/)
-    .map(stripMemberNumber)
-    .filter(Boolean)
-}
-
-function formatGroupMembersText(groupMembersText: string): string {
-  const normalizedText = groupMembersText.replace(/\r\n/g, '\n')
-
-  if (!normalizedText.includes('\n')) {
-    return groupMembersText
-  }
-
-  const completedMembers = normalizedText
-    .split('\n')
-    .map(stripMemberNumber)
-    .filter(Boolean)
-  const shouldAddNextLine = normalizedText.endsWith('\n')
-  const numberedMembers = shouldAddNextLine ? [...completedMembers, ''] : completedMembers
-
-  return numberedMembers
-    .map((member, index) => `${index + 1}. ${member}`)
-    .join('\n')
-}
-
 export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) {
   const [values, setValues] = useState<FormValues>(createInitialValues)
   const [errors, setErrors] = useState<FormErrors>({})
+  const [memberError, setMemberError] = useState('')
 
   const updateValue = <Key extends keyof FormValues>(key: Key, value: FormValues[Key]) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -130,6 +106,45 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
   const handleReset = () => {
     setValues(createInitialValues())
     setErrors({})
+    setMemberError('')
+  }
+
+  const handleAddGroupMember = () => {
+    const fullName = values.memberFullName.trim()
+    const identification = values.memberIdentification.trim()
+
+    if (!fullName || !identification) {
+      setMemberError('Ingresa el nombre completo y la cédula del integrante.')
+      return
+    }
+
+    const nextMember: GroupMember = {
+      id: crypto.randomUUID(),
+      fullName,
+      identification,
+      visitorType: values.memberVisitorType,
+    }
+
+    setValues((current) => ({
+      ...current,
+      memberFullName: '',
+      memberIdentification: '',
+      memberVisitorType: 'adult',
+      groupMembers: [...current.groupMembers, nextMember],
+    }))
+    setErrors((current) => {
+      const { groupMembers, ...nextErrors } = current
+      void groupMembers
+      return nextErrors
+    })
+    setMemberError('')
+  }
+
+  const handleRemoveGroupMember = (memberId: string) => {
+    setValues((current) => ({
+      ...current,
+      groupMembers: current.groupMembers.filter((member) => member.id !== memberId),
+    }))
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -141,7 +156,6 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
     const identification = values.identification.trim()
     const visitDate = values.visitDate.trim()
     const nationality = values.nationality.trim()
-    const groupMembers = parseGroupMembers(values.groupMembersText)
 
     const nextErrors: FormErrors = {}
 
@@ -151,7 +165,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
     if (!identification) nextErrors.identification = requiredMessages.identification
     if (!visitDate) nextErrors.visitDate = requiredMessages.visitDate
     if (!nationality) nextErrors.nationality = requiredMessages.nationality
-    if (values.entryMode === 'group' && groupMembers.length === 0) {
+    if (values.entryMode === 'group' && values.groupMembers.length === 0) {
       nextErrors.groupMembers = requiredMessages.groupMembers
     }
 
@@ -167,7 +181,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
       nationality,
       visitorType: values.visitorType,
       entryMode: values.entryMode,
-      groupMembers: values.entryMode === 'group' ? groupMembers : [],
+      groupMembers: values.entryMode === 'group' ? values.groupMembers : [],
     })
 
     if (wasSaved) handleReset()
@@ -308,30 +322,135 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
       </fieldset>
 
       {values.entryMode === 'group' && (
-        <div className="group-fields">
-          <div className="form-field">
-            <label htmlFor="group-members">Nombres del grupo</label>
-            <p className="field-help" id="group-members-help">
-              Agrega cada integrante en una línea distinta. Presiona Enter después de cada nombre para verlo en la lista.
-            </p>
-            <p className="field-help" id="group-members-format-help">
-              Formato recomendado: nombre apellido1 apellido2 - cédula.
-            </p>
-            <textarea
-              id="group-members"
-              value={values.groupMembersText}
-              maxLength={500}
-              placeholder={'Nombre Apellido1 Apellido2 - Cédula\nNombre Apellido1 Apellido2 - Cédula'}
-              onChange={(event) => updateValue('groupMembersText', formatGroupMembersText(event.target.value))}
-              aria-invalid={Boolean(errors.groupMembers)}
-              aria-describedby={[
-                'group-members-help',
-                'group-members-format-help',
-                getFieldDescribedBy(errors.groupMembers, 'groupMembers'),
-              ].filter(Boolean).join(' ')}
-            />
+        <section className="group-member-section" aria-labelledby="group-members-heading">
+          <div className="group-member-intro">
+            <h2 id="group-members-heading">Integrantes del grupo</h2>
+            <p>Agrega cada integrante en una línea. Presiona “Agregar” para incluirlo en la lista.</p>
+            <p>Formato recomendado: nombre completo – cédula.</p>
           </div>
-        </div>
+
+          <div className="group-member-add-card">
+            <div className="group-member-card-heading">
+              <UserRoundPlus aria-hidden="true" />
+              <h3>Agregar integrante</h3>
+            </div>
+
+            {memberError && <p className="error-message member-error" role="alert">{memberError}</p>}
+
+            <div className="group-member-add-grid">
+              <div className="form-field">
+                <label htmlFor="member-full-name">Nombre completo</label>
+                <input
+                  id="member-full-name"
+                  value={values.memberFullName}
+                  onChange={(event) => updateValue('memberFullName', event.target.value)}
+                  placeholder="Ej: María Fernanda López Pérez"
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="member-identification">Cédula</label>
+                <input
+                  id="member-identification"
+                  aria-label="Cédula del integrante"
+                  value={values.memberIdentification}
+                  onChange={(event) => updateValue('memberIdentification', event.target.value)}
+                  placeholder="Ej: 1234567890"
+                />
+              </div>
+
+              <fieldset className="member-type-control">
+                <legend>Adulto / Niño</legend>
+                <div className="member-type-options">
+                  <label>
+                    <input
+                      type="radio"
+                      name="member-visitor-type"
+                      checked={values.memberVisitorType === 'adult'}
+                      onChange={() => updateValue('memberVisitorType', 'adult')}
+                    />
+                    Adulto
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="member-visitor-type"
+                      checked={values.memberVisitorType === 'child'}
+                      onChange={() => updateValue('memberVisitorType', 'child')}
+                    />
+                    Niño
+                  </label>
+                </div>
+              </fieldset>
+
+              <button
+                className="add-member-button"
+                type="button"
+                onClick={handleAddGroupMember}
+                aria-label="Agregar integrante"
+              >
+                <Plus aria-hidden="true" />
+                Agregar
+              </button>
+            </div>
+          </div>
+
+          <div className="group-members-panel">
+            <div className="group-member-card-heading">
+              <UsersRound aria-hidden="true" />
+              <h3>{`Integrantes agregados (${values.groupMembers.length})`}</h3>
+            </div>
+
+            {errors.groupMembers && <p className="error-message member-error" id={getErrorId('groupMembers')}>{errors.groupMembers}</p>}
+
+            {values.groupMembers.length === 0 ? (
+              <p className="group-members-empty">Aún no hay integrantes agregados.</p>
+            ) : (
+              <table className="group-members-table">
+                <thead>
+                  <tr>
+                    <th>Nombre completo</th>
+                    <th>Cédula</th>
+                    <th>Tipo</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {values.groupMembers.map((member) => (
+                    <tr key={member.id}>
+                      <td>
+                        <span className="group-member-avatar" aria-hidden="true">{getGroupMemberInitials(member)}</span>
+                        {member.fullName}
+                      </td>
+                      <td>{member.identification}</td>
+                      <td>
+                        <span className="member-type-badge" data-type={member.visitorType}>
+                          <UserRound aria-hidden="true" />
+                          {member.visitorType === 'child' ? 'Niño' : 'Adulto'}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="delete-member-button"
+                          type="button"
+                          onClick={() => handleRemoveGroupMember(member.id)}
+                          aria-label={`Eliminar integrante ${member.fullName}`}
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <p className="group-members-note">
+              <ShieldCheck aria-hidden="true" />
+              Puedes eliminar cualquier integrante usando la acción correspondiente.
+            </p>
+          </div>
+        </section>
       )}
 
       <div className="form-actions">

@@ -1,4 +1,5 @@
 import type { EntryMode, VisitorEntry } from '../types/visitor'
+import { formatGroupMember, getGroupMemberIdentification, getGroupMemberName, getGroupMemberTypeLabel } from './groupMembers'
 
 export type HistoryDateRange =
   | 'all'
@@ -85,7 +86,12 @@ function entryMatchesSearch(entry: VisitorEntry, search: string): boolean {
     getVisitorFullName(entry),
     entry.identification,
     entry.nationality,
-    ...entry.groupMembers,
+    ...entry.groupMembers.flatMap((member) => [
+      formatGroupMember(member),
+      getGroupMemberName(member),
+      getGroupMemberIdentification(member),
+      getGroupMemberTypeLabel(member),
+    ]),
   ].join(' ').toLocaleLowerCase('es-CR')
 
   return searchableText.includes(normalizedSearch)
