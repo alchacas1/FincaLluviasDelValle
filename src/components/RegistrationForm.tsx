@@ -338,7 +338,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
             <p className="text-sm text-[var(--muted)]">Formato recomendado: nombre completo – cédula.</p>
           </div>
 
-          <div className="bg-white/90 rounded-xl p-4 shadow-md">
+          <div className="card">
             <div className="flex items-center gap-3 mb-3">
               <UserRoundPlus aria-hidden="true" />
               <h3 className="text-base font-semibold">Agregar integrante</h3>
@@ -346,8 +346,8 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
 
             {memberError && <p className="text-sm font-semibold text-[var(--terracotta-600)]" role="alert">{memberError}</p>}
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-              <div className="sm:col-span-2 flex flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+              <div className="md:col-span-2 flex flex-col gap-2">
                 <label htmlFor="member-full-name" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Nombre completo</label>
                 <input
                   id="member-full-name"
@@ -398,7 +398,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
 
               <div className="flex items-end">
                 <button
-                  className="inline-flex items-center gap-2 bg-[var(--forest-800)] text-[var(--cream-50)] px-4 py-2 rounded-md font-bold shadow-md"
+                  className="btn-primary w-full md:w-auto inline-flex items-center gap-2"
                   type="button"
                   onClick={handleAddGroupMember}
                   aria-label="Agregar integrante"
@@ -410,7 +410,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
             </div>
           </div>
 
-          <div className="bg-white/90 rounded-xl p-4 shadow-md">
+          <div className="card">
             <div className="flex items-center gap-3 mb-3">
               <UsersRound aria-hidden="true" />
               <h3 className="text-base font-semibold">{`Integrantes agregados (${values.groupMembers.length})`}</h3>
@@ -421,43 +421,25 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
             {values.groupMembers.length === 0 ? (
               <p className="p-4 border-dashed rounded-md text-[var(--muted)]">Aún no hay integrantes agregados.</p>
             ) : (
-              <table className="w-full table-auto border-separate border-spacing-0 rounded-md bg-white">
-                <thead>
-                  <tr>
-                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Nombre completo</th>
-                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Cédula</th>
-                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Tipo</th>
-                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {values.groupMembers.map((member) => (
-                    <tr key={member.id} className="border-t">
-                      <td className="px-4 py-3 font-semibold flex items-center gap-3">
-                        <span className="inline-grid w-9 h-9 place-items-center rounded-full bg-[rgba(232,218,195,0.76)] text-[var(--coffee-700)] font-bold">{getGroupMemberInitials(member)}</span>
-                        {member.fullName}
-                      </td>
-                      <td className="px-4 py-3">{member.identification}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold ${member.visitorType === 'child' ? 'bg-[rgba(190,126,37,0.16)] text-[#8c5412]' : 'bg-[rgba(40,96,68,0.11)] text-[var(--forest-800)]'}`}>
-                          <UserRound aria-hidden="true" />
-                          {member.visitorType === 'child' ? 'Niño' : 'Adulto'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          className="w-9 h-9 rounded-md text-[var(--coffee-700)] border-transparent"
-                          type="button"
-                          onClick={() => handleRemoveGroupMember(member.id)}
-                          aria-label={`Eliminar integrante ${member.fullName}`}
-                        >
-                          <Trash2 aria-hidden="true" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ul className="flex flex-wrap gap-3">
+                {values.groupMembers.map((member) => (
+                  <li key={member.id} className="member-chip">
+                    <span className="inline-grid w-10 h-10 place-items-center rounded-full bg-[rgba(232,218,195,0.76)] text-[var(--coffee-700)] font-bold">{getGroupMemberInitials(member)}</span>
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{member.fullName}</div>
+                      <div className="text-sm text-[var(--muted)]">{member.identification} • {member.visitorType === 'child' ? <span className="badge">Niño</span> : <span className="badge-forest">Adulto</span>}</div>
+                    </div>
+                    <button
+                      className="ml-3 w-9 h-9 rounded-md text-[var(--coffee-700)] border-transparent"
+                      type="button"
+                      onClick={() => handleRemoveGroupMember(member.id)}
+                      aria-label={`Eliminar integrante ${member.fullName}`}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
 
             <p className="mt-3 text-sm text-[var(--muted)] flex items-center gap-2">
@@ -470,7 +452,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
 
       <div className="flex justify-end md:col-span-2 gap-3 pt-1">
         <button
-          className="min-h-[48px] px-4 py-2 rounded-md border border-[var(--line)] text-[var(--coffee-700)]"
+          className="btn-secondary"
           type="button"
           onClick={handleReset}
           disabled={isSaving}
@@ -478,7 +460,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
           Limpiar formulario
         </button>
         <button
-          className="min-h-[48px] px-4 py-2 rounded-md bg-[var(--forest-800)] text-[var(--cream-50)] font-bold"
+          className="btn-primary"
           type="submit"
           disabled={isSaving}
         >

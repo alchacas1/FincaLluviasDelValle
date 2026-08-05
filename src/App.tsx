@@ -58,9 +58,9 @@ export function App() {
       <main id="main-content" className="mx-auto w-full max-w-[1280px] grid grid-cols-1 md:grid-cols-[1.65fr_1fr] gap-7 px-6 py-12">
         {activeView === 'registration' ? (
           <>
-            <section id="registration-form" className="bg-white/90 rounded-xl p-6 shadow-md" aria-labelledby="registration-heading">
+            <section id="registration-form" className="card" aria-labelledby="registration-heading">
               <div className="mb-4">
-                <h1 id="registration-heading" className="font-serif text-2xl text-[var(--forest-950)]">Registro de ingreso</h1>
+                <h1 id="registration-heading" className="section-title">Registro de ingreso</h1>
               </div>
               {successMessage && <p className="p-3 rounded-md bg-[rgba(40,96,68,0.09)] text-[var(--forest-800)]" role="status">{successMessage}</p>}
               {errorMessage && <p className="p-3 rounded-md bg-[rgba(167,77,58,0.08)] text-[var(--terracotta-600)]" role="alert">{errorMessage}</p>}

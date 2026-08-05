@@ -158,13 +158,13 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
 
   return (
     <>
-      <section className="bg-white/90 rounded-xl p-6 shadow-md" aria-labelledby="history-heading">
+      <section className="card" aria-labelledby="history-heading">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 id="history-heading" className="font-serif text-2xl text-[var(--forest-950)]">Historial</h1>
-            <p className="text-sm text-[var(--muted)]">{`Mostrando ${filteredEntries.length} de ${entries.length} registros`}</p>
+            <h1 id="history-heading" className="section-title">Historial</h1>
+            <p className="text-sm text-muted">{`Mostrando ${filteredEntries.length} de ${entries.length} registros`}</p>
           </div>
-          <button className="px-3 py-2 rounded-md border" type="button" onClick={() => setFilters(createInitialFilters())}>
+          <button className="btn-secondary" type="button" onClick={() => setFilters(createInitialFilters())}>
             Limpiar filtros
           </button>
         </div>

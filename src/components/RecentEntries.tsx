@@ -20,9 +20,9 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
   const recentEntries = entries.slice(0, 5)
 
   return (
-    <section className="bg-white/90 rounded-xl p-6 shadow-md" aria-labelledby="recent-entries-heading">
+    <section className="card" aria-labelledby="recent-entries-heading">
       <div className="flex items-center justify-between mb-4">
-        <h2 id="recent-entries-heading" className="text-xl font-serif text-[var(--forest-950)]">Ingresos recientes</h2>
+        <h2 id="recent-entries-heading" className="section-title">Ingresos recientes</h2>
       </div>
       {recentEntries.length === 0 ? (
         <p className="text-muted">Aún no hay ingresos registrados.</p>
