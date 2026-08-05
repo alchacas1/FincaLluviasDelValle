@@ -46,10 +46,12 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
                       {entry.entryMode === 'group' ? 'Grupo' : 'Individual'}
                     </dd>
                   </div>
-                  <div>
-                    <dt>Encargado</dt>
-                    <dd>{entry.entryMode === 'group' ? visitorName : '—'}</dd>
-                  </div>
+                  {entry.entryMode === 'group' && (
+                    <div>
+                      <dt>Encargado</dt>
+                      <dd>{visitorName}</dd>
+                    </div>
+                  )}
                   {entry.entryMode === 'group' && entry.groupMembers.length > 0 && (
                     <div className="entry-members">
                       <dt>Integrantes</dt>

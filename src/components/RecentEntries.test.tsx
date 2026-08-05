@@ -40,10 +40,11 @@ describe('RecentEntries', () => {
     expect(screen.getByText('Mateo')).toBeVisible()
   })
 
-  it('shows individual mode without group members', () => {
+  it('shows individual mode without responsible person or group members', () => {
     render(<RecentEntries entries={[createEntry(1)]} />)
 
     expect(screen.getByText('Individual')).toBeVisible()
+    expect(screen.queryByText('Encargado')).not.toBeInTheDocument()
     expect(screen.queryByText('Integrantes')).not.toBeInTheDocument()
   })
 })
