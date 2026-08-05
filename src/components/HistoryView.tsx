@@ -158,24 +158,25 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
 
   return (
     <>
-      <section className="panel history-card" aria-labelledby="history-heading">
-        <div className="section-heading history-heading">
+      <section className="bg-white/90 rounded-xl p-6 shadow-md" aria-labelledby="history-heading">
+        <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 id="history-heading">Historial</h1>
-            <p>{`Mostrando ${filteredEntries.length} de ${entries.length} registros`}</p>
+            <h1 id="history-heading" className="font-serif text-2xl text-[var(--forest-950)]">Historial</h1>
+            <p className="text-sm text-[var(--muted)]">{`Mostrando ${filteredEntries.length} de ${entries.length} registros`}</p>
           </div>
-          <button className="secondary-button" type="button" onClick={() => setFilters(createInitialFilters())}>
+          <button className="px-3 py-2 rounded-md border" type="button" onClick={() => setFilters(createInitialFilters())}>
             Limpiar filtros
           </button>
         </div>
 
-        <div className="history-filters" aria-label="Filtros del historial">
-          <div className="form-field">
-            <label htmlFor="history-date-range">Fecha</label>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" aria-label="Filtros del historial">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="history-date-range" className="text-xs font-bold uppercase text-[var(--muted)]">Fecha</label>
             <select
               id="history-date-range"
               value={filters.dateRange}
               onChange={(event) => updateFilter('dateRange', event.target.value as HistoryDateRange)}
+              className="min-h-[44px] rounded-md border px-3"
             >
               {dateRangeOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -183,12 +184,13 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
             </select>
           </div>
 
-          <div className="form-field">
-            <label htmlFor="history-nationality">Nacionalidad</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="history-nationality" className="text-xs font-bold uppercase text-[var(--muted)]">Nacionalidad</label>
             <select
               id="history-nationality"
               value={filters.nationality}
               onChange={(event) => updateFilter('nationality', event.target.value)}
+              className="min-h-[44px] rounded-md border px-3"
             >
               <option value="all">Todas</option>
               {nationalities.map((nationality) => (
@@ -197,12 +199,13 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
             </select>
           </div>
 
-          <div className="form-field">
-            <label htmlFor="history-entry-mode">Modalidad</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="history-entry-mode" className="text-xs font-bold uppercase text-[var(--muted)]">Modalidad</label>
             <select
               id="history-entry-mode"
               value={filters.entryMode}
               onChange={(event) => updateFilter('entryMode', event.target.value as EntryMode | 'all')}
+              className="min-h-[44px] rounded-md border px-3"
             >
               {entryModeOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -210,47 +213,46 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
             </select>
           </div>
 
-          <div className="form-field history-search">
-            <label htmlFor="history-search">Buscar</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="history-search" className="text-xs font-bold uppercase text-[var(--muted)]">Buscar</label>
             <input
               id="history-search"
               value={filters.search}
               onChange={(event) => updateFilter('search', event.target.value)}
+              className="min-h-[44px] rounded-md border px-3"
             />
-            <p className="field-help">Recomendado: busca por nombre, cédula o integrante del grupo.</p>
+            <p className="text-xs text-[var(--muted)]">Recomendado: busca por nombre, cédula o integrante del grupo.</p>
           </div>
         </div>
 
         {filteredEntries.length === 0 ? (
-          <p className="empty-state">No hay registros que coincidan con los filtros.</p>
+          <p className="text-[var(--muted)]">No hay registros que coincidan con los filtros.</p>
         ) : (
-          <ul className="history-list">
+          <ul className="space-y-4">
             {filteredEntries.map((entry) => {
               const visitorName = getVisitorFullName(entry)
               const cardContent = (
                 <>
-                  <div className="history-item-heading">
-                    <h2>{visitorName}</h2>
-                    <span className="entry-mode-badge" data-mode={entry.entryMode}>
-                      {entry.entryMode === 'group' ? 'Grupo' : 'Individual'}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">{visitorName}</h2>
+                    <span className="text-xs font-bold text-[var(--forest-800)]">{entry.entryMode === 'group' ? 'Grupo' : 'Individual'}</span>
                   </div>
-                  <dl className="history-details">
+                  <dl className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-[var(--muted)] mt-2">
                     <div>
-                      <dt>Fecha</dt>
+                      <dt className="font-bold text-xs uppercase">Fecha</dt>
                       <dd>{dateFormatter.format(new Date(entry.createdAt))}</dd>
                     </div>
                     <div>
-                      <dt>Nacionalidad</dt>
+                      <dt className="font-bold text-xs uppercase">Nacionalidad</dt>
                       <dd>{entry.nationality}</dd>
                     </div>
                     <div>
-                      <dt>Cédula</dt>
+                      <dt className="font-bold text-xs uppercase">Cédula</dt>
                       <dd>{entry.identification}</dd>
                     </div>
                     {entry.entryMode === 'group' && (
-                      <div className="history-members">
-                        <dt>Integrantes</dt>
+                      <div className="md:col-span-3">
+                        <dt className="font-bold text-xs uppercase">Integrantes</dt>
                         <dd>{entry.groupMembers.map(formatGroupMember).join(', ')}</dd>
                       </div>
                     )}
@@ -259,10 +261,10 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
               )
 
               return (
-                <li className="history-item" key={entry.id}>
+                <li className="p-4 border rounded-lg bg-white" key={entry.id}>
                   {entry.entryMode === 'group' ? (
                     <div
-                      className="history-item-button"
+                      className="cursor-pointer"
                       role="button"
                       tabIndex={0}
                       onClick={() => openGroupDetail(entry)}

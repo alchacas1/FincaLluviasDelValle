@@ -50,20 +50,20 @@ export function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="relative min-h-screen bg-[var(--cream-100)]">
       <Header activeView={activeView} onNavigate={setActiveView} />
-      <div className="botanical-layer" aria-hidden="true">
-        <img src={coffeeBotanical} alt="" />
+      <div className="pointer-events-none fixed inset-28 -z-10 opacity-30">
+        <img src={coffeeBotanical} alt="" className="w-full h-full object-cover" />
       </div>
-      <main id="main-content" className="main-layout">
+      <main id="main-content" className="mx-auto w-full max-w-[1280px] grid grid-cols-1 md:grid-cols-[1.65fr_1fr] gap-7 px-6 py-12">
         {activeView === 'registration' ? (
           <>
-            <section id="registration-form" className="panel registration-card" aria-labelledby="registration-heading">
-              <div className="section-heading">
-                <h1 id="registration-heading">Registro de ingreso</h1>
+            <section id="registration-form" className="bg-white/90 rounded-xl p-6 shadow-md" aria-labelledby="registration-heading">
+              <div className="mb-4">
+                <h1 id="registration-heading" className="font-serif text-2xl text-[var(--forest-950)]">Registro de ingreso</h1>
               </div>
-              {successMessage && <p className="status-message" role="status">{successMessage}</p>}
-              {errorMessage && <p className="error-message" role="alert">{errorMessage}</p>}
+              {successMessage && <p className="p-3 rounded-md bg-[rgba(40,96,68,0.09)] text-[var(--forest-800)]" role="status">{successMessage}</p>}
+              {errorMessage && <p className="p-3 rounded-md bg-[rgba(167,77,58,0.08)] text-[var(--terracotta-600)]" role="alert">{errorMessage}</p>}
               <RegistrationForm onSubmit={handleSubmit} isSaving={isSaving} />
             </section>
             <RecentEntries entries={entries} />

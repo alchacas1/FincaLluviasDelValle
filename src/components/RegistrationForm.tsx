@@ -188,21 +188,21 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
   }
 
   return (
-    <form className="registration-form" onSubmit={handleSubmit} noValidate>
+    <form className="grid grid-cols-1 md:grid-cols-2 gap-5" onSubmit={handleSubmit} noValidate>
       {Object.keys(errors).length > 0 && (
-        <div className="form-errors" role="alert">
+        <div className="col-span-1 md:col-span-2 p-3 rounded-md border bg-[rgba(167,77,58,0.08)]" role="alert">
           <ul>
             {Object.entries(errors).map(([field, message]) => (
-              <li key={field} id={getErrorId(field as ErrorField)}>{message}</li>
+              <li key={field} id={getErrorId(field as ErrorField)} className="text-sm font-semibold text-[var(--terracotta-600)]">{message}</li>
             ))}
           </ul>
         </div>
       )}
-
-      <div className="form-field">
-        <label htmlFor="first-name">Nombre</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="first-name" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Nombre</label>
         <input
           id="first-name"
+          className="min-h-[44px] rounded-md border px-3"
           value={values.firstName}
           onChange={(event) => updateValue('firstName', event.target.value)}
           aria-invalid={Boolean(errors.firstName)}
@@ -210,10 +210,11 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         />
       </div>
 
-      <div className="form-field">
-        <label htmlFor="first-last-name">Primer apellido</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="first-last-name" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Primer apellido</label>
         <input
           id="first-last-name"
+          className="min-h-[44px] rounded-md border px-3"
           value={values.firstLastName}
           onChange={(event) => updateValue('firstLastName', event.target.value)}
           aria-invalid={Boolean(errors.firstLastName)}
@@ -221,10 +222,11 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         />
       </div>
 
-      <div className="form-field">
-        <label htmlFor="second-last-name">Segundo apellido</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="second-last-name" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Segundo apellido</label>
         <input
           id="second-last-name"
+          className="min-h-[44px] rounded-md border px-3"
           value={values.secondLastName}
           onChange={(event) => updateValue('secondLastName', event.target.value)}
           aria-invalid={Boolean(errors.secondLastName)}
@@ -232,10 +234,11 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         />
       </div>
 
-      <div className="form-field">
-        <label htmlFor="identification">Identificación</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="identification" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Identificación</label>
         <input
           id="identification"
+          className="min-h-[44px] rounded-md border px-3"
           value={values.identification}
           onChange={(event) => updateValue('identification', event.target.value)}
           aria-invalid={Boolean(errors.identification)}
@@ -243,11 +246,12 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         />
       </div>
 
-      <div className="form-field">
-        <label htmlFor="visit-date">Fecha</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="visit-date" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Fecha</label>
         <input
           id="visit-date"
           type="date"
+          className="min-h-[44px] rounded-md border px-3"
           value={values.visitDate}
           onChange={(event) => updateValue('visitDate', event.target.value)}
           aria-invalid={Boolean(errors.visitDate)}
@@ -255,10 +259,11 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         />
       </div>
 
-      <div className="form-field">
-        <label htmlFor="nationality">Nacionalidad</label>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="nationality" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Nacionalidad</label>
         <select
           id="nationality"
+          className="min-h-[44px] rounded-md border px-3"
           value={values.nationality}
           onChange={(event) => updateValue('nationality', event.target.value)}
           aria-invalid={Boolean(errors.nationality)}
@@ -269,23 +274,25 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         </select>
       </div>
 
-      <fieldset className="segmented-control">
-        <legend>Tipo de visitante</legend>
-        <div className="segmented-options">
-          <label className="segmented-option">
+      <fieldset className="col-span-1 md:col-span-2">
+        <legend className="text-xs font-bold uppercase text-[var(--coffee-700)] mb-2">Tipo de visitante</legend>
+        <div className="grid grid-cols-2 gap-2">
+          <label className={`flex items-center justify-center gap-2 rounded-md p-2 cursor-pointer ${values.visitorType === 'adult' ? 'bg-[var(--cream-50)] text-[var(--forest-950)]' : 'bg-[rgba(248,241,228,0.72)]'}`}>
             <input
               type="radio"
               name="visitor-type"
+              className="sr-only"
               checked={values.visitorType === 'adult'}
               onChange={() => updateValue('visitorType', 'adult')}
             />
             <UserRound aria-hidden="true" />
             Adulto
           </label>
-          <label className="segmented-option">
+          <label className={`flex items-center justify-center gap-2 rounded-md p-2 cursor-pointer ${values.visitorType === 'child' ? 'bg-[var(--cream-50)] text-[var(--forest-950)]' : 'bg-[rgba(248,241,228,0.72)]'}`}>
             <input
               type="radio"
               name="visitor-type"
+              className="sr-only"
               checked={values.visitorType === 'child'}
               onChange={() => updateValue('visitorType', 'child')}
             />
@@ -295,23 +302,25 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         </div>
       </fieldset>
 
-      <fieldset className="segmented-control">
-        <legend>Modalidad de ingreso</legend>
-        <div className="segmented-options">
-          <label className="segmented-option">
+      <fieldset className="col-span-1 md:col-span-2">
+        <legend className="text-xs font-bold uppercase text-[var(--coffee-700)] mb-2">Modalidad de ingreso</legend>
+        <div className="grid grid-cols-2 gap-2">
+          <label className={`flex items-center justify-center gap-2 rounded-md p-2 cursor-pointer ${values.entryMode === 'individual' ? 'bg-[var(--cream-50)] text-[var(--forest-950)]' : 'bg-[rgba(248,241,228,0.72)]'}`}>
             <input
               type="radio"
               name="entry-mode"
+              className="sr-only"
               checked={values.entryMode === 'individual'}
               onChange={() => updateValue('entryMode', 'individual')}
             />
             <UserRound aria-hidden="true" />
             Individual
           </label>
-          <label className="segmented-option">
+          <label className={`flex items-center justify-center gap-2 rounded-md p-2 cursor-pointer ${values.entryMode === 'group' ? 'bg-[var(--cream-50)] text-[var(--forest-950)]' : 'bg-[rgba(248,241,228,0.72)]'}`}>
             <input
               type="radio"
               name="entry-mode"
+              className="sr-only"
               checked={values.entryMode === 'group'}
               onChange={() => updateValue('entryMode', 'group')}
             />
@@ -322,59 +331,63 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
       </fieldset>
 
       {values.entryMode === 'group' && (
-        <section className="group-member-section" aria-labelledby="group-members-heading">
-          <div className="group-member-intro">
-            <h2 id="group-members-heading">Integrantes del grupo</h2>
-            <p>Agrega cada integrante en una línea. Presiona “Agregar” para incluirlo en la lista.</p>
-            <p>Formato recomendado: nombre completo – cédula.</p>
+        <section className="col-span-1 md:col-span-2 grid gap-4" aria-labelledby="group-members-heading">
+          <div>
+            <h2 id="group-members-heading" className="text-lg font-serif text-[var(--coffee-700)] uppercase tracking-wider">Integrantes del grupo</h2>
+            <p className="text-sm text-[var(--muted)]">Agrega cada integrante en una línea. Presiona “Agregar” para incluirlo en la lista.</p>
+            <p className="text-sm text-[var(--muted)]">Formato recomendado: nombre completo – cédula.</p>
           </div>
 
-          <div className="group-member-add-card">
-            <div className="group-member-card-heading">
+          <div className="bg-white/90 rounded-xl p-4 shadow-md">
+            <div className="flex items-center gap-3 mb-3">
               <UserRoundPlus aria-hidden="true" />
-              <h3>Agregar integrante</h3>
+              <h3 className="text-base font-semibold">Agregar integrante</h3>
             </div>
 
-            {memberError && <p className="error-message member-error" role="alert">{memberError}</p>}
+            {memberError && <p className="text-sm font-semibold text-[var(--terracotta-600)]" role="alert">{memberError}</p>}
 
-            <div className="group-member-add-grid">
-              <div className="form-field">
-                <label htmlFor="member-full-name">Nombre completo</label>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+              <div className="sm:col-span-2 flex flex-col gap-2">
+                <label htmlFor="member-full-name" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Nombre completo</label>
                 <input
                   id="member-full-name"
+                  className="min-h-[44px] rounded-md border px-3"
                   value={values.memberFullName}
                   onChange={(event) => updateValue('memberFullName', event.target.value)}
                   placeholder="Ej: María Fernanda López Pérez"
                 />
               </div>
 
-              <div className="form-field">
-                <label htmlFor="member-identification">Cédula</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="member-identification" className="text-xs font-bold uppercase text-[var(--coffee-700)]">Cédula</label>
                 <input
                   id="member-identification"
                   aria-label="Cédula del integrante"
+                  className="min-h-[44px] rounded-md border px-3"
                   value={values.memberIdentification}
                   onChange={(event) => updateValue('memberIdentification', event.target.value)}
                   placeholder="Ej: 1234567890"
                 />
               </div>
 
-              <fieldset className="member-type-control">
-                <legend>Adulto / Niño</legend>
-                <div className="member-type-options">
-                  <label>
+              <fieldset className="flex flex-col gap-2">
+                <legend className="text-xs font-bold">Adulto / Niño</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={`flex items-center justify-center gap-2 rounded-md p-2 cursor-pointer ${values.memberVisitorType === 'adult' ? 'bg-[var(--cream-50)] text-[var(--forest-950)]' : 'bg-[rgba(248,241,228,0.66)]'}`}>
                     <input
                       type="radio"
                       name="member-visitor-type"
+                      className="sr-only"
                       checked={values.memberVisitorType === 'adult'}
                       onChange={() => updateValue('memberVisitorType', 'adult')}
                     />
                     Adulto
                   </label>
-                  <label>
+                  <label className={`flex items-center justify-center gap-2 rounded-md p-2 cursor-pointer ${values.memberVisitorType === 'child' ? 'bg-[var(--cream-50)] text-[var(--forest-950)]' : 'bg-[rgba(248,241,228,0.66)]'}`}>
                     <input
                       type="radio"
                       name="member-visitor-type"
+                      className="sr-only"
                       checked={values.memberVisitorType === 'child'}
                       onChange={() => updateValue('memberVisitorType', 'child')}
                     />
@@ -383,55 +396,57 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
                 </div>
               </fieldset>
 
-              <button
-                className="add-member-button"
-                type="button"
-                onClick={handleAddGroupMember}
-                aria-label="Agregar integrante"
-              >
-                <Plus aria-hidden="true" />
-                Agregar
-              </button>
+              <div className="flex items-end">
+                <button
+                  className="inline-flex items-center gap-2 bg-[var(--forest-800)] text-[var(--cream-50)] px-4 py-2 rounded-md font-bold shadow-md"
+                  type="button"
+                  onClick={handleAddGroupMember}
+                  aria-label="Agregar integrante"
+                >
+                  <Plus aria-hidden="true" />
+                  Agregar
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="group-members-panel">
-            <div className="group-member-card-heading">
+          <div className="bg-white/90 rounded-xl p-4 shadow-md">
+            <div className="flex items-center gap-3 mb-3">
               <UsersRound aria-hidden="true" />
-              <h3>{`Integrantes agregados (${values.groupMembers.length})`}</h3>
+              <h3 className="text-base font-semibold">{`Integrantes agregados (${values.groupMembers.length})`}</h3>
             </div>
 
-            {errors.groupMembers && <p className="error-message member-error" id={getErrorId('groupMembers')}>{errors.groupMembers}</p>}
+            {errors.groupMembers && <p className="text-sm font-semibold text-[var(--terracotta-600)]" id={getErrorId('groupMembers')}>{errors.groupMembers}</p>}
 
             {values.groupMembers.length === 0 ? (
-              <p className="group-members-empty">Aún no hay integrantes agregados.</p>
+              <p className="p-4 border-dashed rounded-md text-[var(--muted)]">Aún no hay integrantes agregados.</p>
             ) : (
-              <table className="group-members-table">
+              <table className="w-full table-auto border-separate border-spacing-0 rounded-md bg-white">
                 <thead>
                   <tr>
-                    <th>Nombre completo</th>
-                    <th>Cédula</th>
-                    <th>Tipo</th>
-                    <th>Acción</th>
+                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Nombre completo</th>
+                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Cédula</th>
+                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Tipo</th>
+                    <th className="text-left px-4 py-2 text-xs font-bold text-[var(--muted)] uppercase">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {values.groupMembers.map((member) => (
-                    <tr key={member.id}>
-                      <td>
-                        <span className="group-member-avatar" aria-hidden="true">{getGroupMemberInitials(member)}</span>
+                    <tr key={member.id} className="border-t">
+                      <td className="px-4 py-3 font-semibold flex items-center gap-3">
+                        <span className="inline-grid w-9 h-9 place-items-center rounded-full bg-[rgba(232,218,195,0.76)] text-[var(--coffee-700)] font-bold">{getGroupMemberInitials(member)}</span>
                         {member.fullName}
                       </td>
-                      <td>{member.identification}</td>
-                      <td>
-                        <span className="member-type-badge" data-type={member.visitorType}>
+                      <td className="px-4 py-3">{member.identification}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold ${member.visitorType === 'child' ? 'bg-[rgba(190,126,37,0.16)] text-[#8c5412]' : 'bg-[rgba(40,96,68,0.11)] text-[var(--forest-800)]'}`}>
                           <UserRound aria-hidden="true" />
                           {member.visitorType === 'child' ? 'Niño' : 'Adulto'}
                         </span>
                       </td>
-                      <td>
+                      <td className="px-4 py-3">
                         <button
-                          className="delete-member-button"
+                          className="w-9 h-9 rounded-md text-[var(--coffee-700)] border-transparent"
                           type="button"
                           onClick={() => handleRemoveGroupMember(member.id)}
                           aria-label={`Eliminar integrante ${member.fullName}`}
@@ -445,7 +460,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
               </table>
             )}
 
-            <p className="group-members-note">
+            <p className="mt-3 text-sm text-[var(--muted)] flex items-center gap-2">
               <ShieldCheck aria-hidden="true" />
               Puedes eliminar cualquier integrante usando la acción correspondiente.
             </p>
@@ -453,9 +468,22 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         </section>
       )}
 
-      <div className="form-actions">
-        <button className="secondary-button" type="button" onClick={handleReset} disabled={isSaving}>Limpiar formulario</button>
-        <button className="primary-button" type="submit" disabled={isSaving}>Registrar ingreso</button>
+      <div className="flex justify-end md:col-span-2 gap-3 pt-1">
+        <button
+          className="min-h-[48px] px-4 py-2 rounded-md border border-[var(--line)] text-[var(--coffee-700)]"
+          type="button"
+          onClick={handleReset}
+          disabled={isSaving}
+        >
+          Limpiar formulario
+        </button>
+        <button
+          className="min-h-[48px] px-4 py-2 rounded-md bg-[var(--forest-800)] text-[var(--cream-50)] font-bold"
+          type="submit"
+          disabled={isSaving}
+        >
+          Registrar ingreso
+        </button>
       </div>
     </form>
   )
