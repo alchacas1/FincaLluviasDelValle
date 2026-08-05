@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type KeyboardEvent } from 'react'
 
 import type { EntryMode, VisitorEntry } from '../types/visitor'
 import {
@@ -43,6 +43,7 @@ function createInitialFilters(): HistoryFilters {
 
 export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
   const [filters, setFilters] = useState<HistoryFilters>(createInitialFilters)
+  const [selectedGroupEntry, setSelectedGroupEntry] = useState<VisitorEntry | null>(null)
   const nationalities = useMemo(() => getAvailableNationalities(entries), [entries])
   const filteredEntries = useMemo(() => (
     filterHistoryEntries(entries, filters, now)
@@ -50,6 +51,20 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
 
   const updateFilter = <Key extends keyof HistoryFilters>(key: Key, value: HistoryFilters[Key]) => {
     setFilters((current) => ({ ...current, [key]: value }))
+  }
+
+  const openGroupDetail = (entry: VisitorEntry) => {
+    setSelectedGroupEntry(entry)
+  }
+
+  const handleGroupCardKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    entry: VisitorEntry,
+  ) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openGroupDetail(entry)
+    }
   }
 
   return (
@@ -122,9 +137,8 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
         <ul className="history-list">
           {filteredEntries.map((entry) => {
             const visitorName = getVisitorFullName(entry)
-
-            return (
-              <li className="history-item" key={entry.id}>
+            const cardContent = (
+              <>
                 <div className="history-item-heading">
                   <h2>{visitorName}</h2>
                   <span className="entry-mode-badge" data-mode={entry.entryMode}>
@@ -151,10 +165,81 @@ export function HistoryView({ entries, now = new Date() }: HistoryViewProps) {
                     </div>
                   )}
                 </dl>
+              </>
+            )
+
+            return (
+              <li className="history-item" key={entry.id}>
+                {entry.entryMode === 'group' ? (
+                  <div
+                    className="history-item-button"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openGroupDetail(entry)}
+                    onKeyDown={(event) => handleGroupCardKeyDown(event, entry)}
+                    aria-label={`Ver detalle del grupo ${visitorName}`}
+                  >
+                    {cardContent}
+                  </div>
+                ) : cardContent}
               </li>
             )
           })}
         </ul>
+      )}
+
+      {selectedGroupEntry && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedGroupEntry(null)}>
+          <div
+            className="group-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="group-detail-heading"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-heading">
+              <div>
+                <p>Detalle del grupo</p>
+                <h2 id="group-detail-heading">{`Detalle del grupo ${getVisitorFullName(selectedGroupEntry)}`}</h2>
+              </div>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => setSelectedGroupEntry(null)}
+              >
+                Cerrar detalle del grupo
+              </button>
+            </div>
+
+            <dl className="modal-details">
+              <div>
+                <dt>Encargado</dt>
+                <dd>{getVisitorFullName(selectedGroupEntry)}</dd>
+              </div>
+              <div>
+                <dt>Fecha</dt>
+                <dd>{dateFormatter.format(new Date(selectedGroupEntry.createdAt))}</dd>
+              </div>
+              <div>
+                <dt>Nacionalidad</dt>
+                <dd>{selectedGroupEntry.nationality}</dd>
+              </div>
+              <div>
+                <dt>Cédula</dt>
+                <dd>{selectedGroupEntry.identification}</dd>
+              </div>
+            </dl>
+
+            <section className="modal-members" aria-labelledby="modal-members-heading">
+              <h3 id="modal-members-heading">Personas del grupo</h3>
+              <ol aria-label="Integrantes del grupo">
+                {selectedGroupEntry.groupMembers.map((member, index) => (
+                  <li key={`${member}-${index}`}>{member}</li>
+                ))}
+              </ol>
+            </section>
+          </div>
+        </div>
       )}
     </section>
   )

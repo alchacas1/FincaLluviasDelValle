@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -74,5 +74,34 @@ describe('HistoryView', () => {
     expect(screen.getByLabelText('Modalidad')).toHaveValue('all')
     expect(screen.getByLabelText('Buscar')).toHaveValue('')
     expect(screen.getByText('Mostrando 3 de 3 registros')).toBeVisible()
+  })
+
+  it('opens a modal with group details and member list when a group card is clicked', async () => {
+    const user = userEvent.setup()
+    render(<HistoryView entries={entries} now={new Date('2026-08-05T12:00:00.000-06:00')} />)
+
+    await user.click(screen.getByRole('button', { name: 'Ver detalle del grupo Maria Chaves Cascante' }))
+
+    const modal = screen.getByRole('dialog', { name: 'Detalle del grupo Maria Chaves Cascante' })
+
+    expect(modal).toBeVisible()
+    expect(within(modal).getByText('Encargado')).toBeVisible()
+    expect(within(modal).getByText('Maria Chaves Cascante')).toBeVisible()
+
+    const membersList = within(modal).getByRole('list', { name: 'Integrantes del grupo' })
+
+    expect(membersList).toBeVisible()
+    expect(within(membersList).getByText('Alvaro Chaves Cascante')).toBeVisible()
+    expect(within(membersList).getByText('Juanito Mora Perez')).toBeVisible()
+
+    await user.click(within(modal).getByRole('button', { name: 'Cerrar detalle del grupo' }))
+
+    expect(screen.queryByRole('dialog', { name: 'Detalle del grupo Maria Chaves Cascante' })).not.toBeInTheDocument()
+  })
+
+  it('does not make individual cards clickable', () => {
+    render(<HistoryView entries={entries} now={new Date('2026-08-05T12:00:00.000-06:00')} />)
+
+    expect(screen.queryByRole('button', { name: 'Ver detalle del grupo Jose Chaves Cascante' })).not.toBeInTheDocument()
   })
 })
