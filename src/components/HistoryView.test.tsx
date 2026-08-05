@@ -85,6 +85,7 @@ describe('HistoryView', () => {
     const modal = screen.getByRole('dialog', { name: 'Detalle del grupo Maria Chaves Cascante' })
 
     expect(modal).toBeVisible()
+    expect(modal.closest('.history-card')).toBeNull()
     expect(within(modal).getByText('Encargado')).toBeVisible()
     expect(within(modal).getByText('Maria Chaves Cascante')).toBeVisible()
 
@@ -95,6 +96,16 @@ describe('HistoryView', () => {
     expect(within(membersList).getByText('Juanito Mora Perez')).toBeVisible()
 
     await user.click(within(modal).getByRole('button', { name: 'Cerrar detalle del grupo' }))
+
+    expect(screen.queryByRole('dialog', { name: 'Detalle del grupo Maria Chaves Cascante' })).not.toBeInTheDocument()
+  })
+
+  it('closes the group modal with Escape', async () => {
+    const user = userEvent.setup()
+    render(<HistoryView entries={entries} now={new Date('2026-08-05T12:00:00.000-06:00')} />)
+
+    await user.click(screen.getByRole('button', { name: 'Ver detalle del grupo Maria Chaves Cascante' }))
+    await user.keyboard('{Escape}')
 
     expect(screen.queryByRole('dialog', { name: 'Detalle del grupo Maria Chaves Cascante' })).not.toBeInTheDocument()
   })
