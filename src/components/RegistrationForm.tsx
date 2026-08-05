@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Baby, UserRound, UsersRound } from 'lucide-react'
 
 import { getLocalDateInputValue } from '../utils/date'
 import type { EntryMode, VisitorDraft, VisitorType } from '../types/visitor'
@@ -125,9 +126,9 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form className="registration-form" onSubmit={handleSubmit} noValidate>
       {Object.keys(errors).length > 0 && (
-        <div role="alert">
+        <div className="form-errors" role="alert">
           <ul>
             {Object.entries(errors).map(([field, message]) => (
               <li key={field} id={getErrorId(field as keyof FormErrors)}>{message}</li>
@@ -136,43 +137,47 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         </div>
       )}
 
-      <div>
+      <div className="form-field">
         <label htmlFor="name">Nombre</label>
         <input
           id="name"
           value={values.name}
           onChange={(event) => updateValue('name', event.target.value)}
+          aria-invalid={Boolean(errors.name)}
           aria-describedby={getFieldDescribedBy(errors.name, 'name')}
         />
       </div>
 
-      <div>
+      <div className="form-field">
         <label htmlFor="identification">Identificación</label>
         <input
           id="identification"
           value={values.identification}
           onChange={(event) => updateValue('identification', event.target.value)}
+          aria-invalid={Boolean(errors.identification)}
           aria-describedby={getFieldDescribedBy(errors.identification, 'identification')}
         />
       </div>
 
-      <div>
+      <div className="form-field">
         <label htmlFor="visit-date">Fecha</label>
         <input
           id="visit-date"
           type="date"
           value={values.visitDate}
           onChange={(event) => updateValue('visitDate', event.target.value)}
+          aria-invalid={Boolean(errors.visitDate)}
           aria-describedby={getFieldDescribedBy(errors.visitDate, 'visitDate')}
         />
       </div>
 
-      <div>
+      <div className="form-field">
         <label htmlFor="nationality">Nacionalidad</label>
         <select
           id="nationality"
           value={values.nationality}
           onChange={(event) => updateValue('nationality', event.target.value)}
+          aria-invalid={Boolean(errors.nationality)}
           aria-describedby={getFieldDescribedBy(errors.nationality, 'nationality')}
         >
           <option value="">Selecciona una nacionalidad</option>
@@ -180,77 +185,89 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         </select>
       </div>
 
-      <fieldset>
+      <fieldset className="segmented-control">
         <legend>Tipo de visitante</legend>
-        <label>
-          <input
-            type="radio"
-            name="visitor-type"
-            checked={values.visitorType === 'adult'}
-            onChange={() => updateValue('visitorType', 'adult')}
-          />
-          Adulto
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="visitor-type"
-            checked={values.visitorType === 'child'}
-            onChange={() => updateValue('visitorType', 'child')}
-          />
-          Niño
-        </label>
+        <div className="segmented-options">
+          <label className="segmented-option">
+            <input
+              type="radio"
+              name="visitor-type"
+              checked={values.visitorType === 'adult'}
+              onChange={() => updateValue('visitorType', 'adult')}
+            />
+            <UserRound aria-hidden="true" />
+            Adulto
+          </label>
+          <label className="segmented-option">
+            <input
+              type="radio"
+              name="visitor-type"
+              checked={values.visitorType === 'child'}
+              onChange={() => updateValue('visitorType', 'child')}
+            />
+            <Baby aria-hidden="true" />
+            Niño
+          </label>
+        </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset className="segmented-control">
         <legend>Modalidad de ingreso</legend>
-        <label>
-          <input
-            type="radio"
-            name="entry-mode"
-            checked={values.entryMode === 'individual'}
-            onChange={() => updateValue('entryMode', 'individual')}
-          />
-          Individual
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="entry-mode"
-            checked={values.entryMode === 'group'}
-            onChange={() => updateValue('entryMode', 'group')}
-          />
-          Grupo
-        </label>
+        <div className="segmented-options">
+          <label className="segmented-option">
+            <input
+              type="radio"
+              name="entry-mode"
+              checked={values.entryMode === 'individual'}
+              onChange={() => updateValue('entryMode', 'individual')}
+            />
+            <UserRound aria-hidden="true" />
+            Individual
+          </label>
+          <label className="segmented-option">
+            <input
+              type="radio"
+              name="entry-mode"
+              checked={values.entryMode === 'group'}
+              onChange={() => updateValue('entryMode', 'group')}
+            />
+            <UsersRound aria-hidden="true" />
+            Grupo
+          </label>
+        </div>
       </fieldset>
 
       {values.entryMode === 'group' && (
-        <>
-          <div>
+        <div className="group-fields">
+          <div className="form-field">
             <label htmlFor="responsible-name">Persona encargada</label>
             <input
               id="responsible-name"
               value={values.responsibleName}
               onChange={(event) => updateValue('responsibleName', event.target.value)}
+              aria-invalid={Boolean(errors.responsibleName)}
               aria-describedby={getFieldDescribedBy(errors.responsibleName, 'responsibleName')}
             />
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="group-members">Nombres del grupo</label>
             <textarea
               id="group-members"
               value={values.groupMembersText}
               maxLength={500}
               onChange={(event) => updateValue('groupMembersText', event.target.value)}
+              aria-invalid={Boolean(errors.groupMembers)}
               aria-describedby={getFieldDescribedBy(errors.groupMembers, 'groupMembers')}
             />
           </div>
-        </>
+        </div>
       )}
 
-      <button type="button" onClick={handleReset} disabled={isSaving}>Limpiar formulario</button>
-      <button type="submit" disabled={isSaving}>Registrar ingreso</button>
+      <div className="form-actions">
+        <button className="secondary-button" type="button" onClick={handleReset} disabled={isSaving}>Limpiar formulario</button>
+        <button className="primary-button" type="submit" disabled={isSaving}>Registrar ingreso</button>
+      </div>
     </form>
   )
 }

@@ -10,23 +10,29 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
   const recentEntries = entries.slice(0, 5)
 
   return (
-    <section aria-labelledby="recent-entries-heading">
-      <h2 id="recent-entries-heading">Ingresos recientes</h2>
+    <section className="panel recent-card" aria-labelledby="recent-entries-heading">
+      <div className="section-heading">
+        <h2 id="recent-entries-heading">Ingresos recientes</h2>
+      </div>
       {recentEntries.length === 0 ? (
-        <p>Aún no hay ingresos registrados.</p>
+        <p className="empty-state">Aún no hay ingresos registrados.</p>
       ) : (
-        <ul>
+        <ul className="entries-list">
           {recentEntries.map((entry) => (
-            <li key={entry.id}>
-              <h3>{entry.name}</h3>
-              <dl>
+            <li className="entry-item" key={entry.id}>
+              <div className="entry-heading">
+                <h3>{entry.name}</h3>
+              </div>
+              <dl className="entry-details">
                 <div>
                   <dt>Fecha</dt>
                   <dd>{dateFormatter.format(new Date(entry.createdAt))}</dd>
                 </div>
                 <div>
                   <dt>Modalidad</dt>
-                  <dd>{entry.entryMode === 'group' ? 'Grupo' : 'Individual'}</dd>
+                  <dd className="entry-mode-badge" data-mode={entry.entryMode}>
+                    {entry.entryMode === 'group' ? 'Grupo' : 'Individual'}
+                  </dd>
                 </div>
                 <div>
                   <dt>Responsable</dt>

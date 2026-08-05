@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import coffeeBotanical from './assets/coffee-botanical.png'
 import { Header } from './components/Header'
 import { RecentEntries } from './components/RecentEntries'
 import { RegistrationForm } from './components/RegistrationForm'
@@ -47,17 +48,22 @@ export function App() {
   }
 
   return (
-    <>
+    <div className="app-shell">
       <Header />
-      <main id="main-content">
-        <section id="registration-form" aria-labelledby="registration-heading">
-          <h1 id="registration-heading">Registro de ingreso</h1>
-          {successMessage && <p role="status">{successMessage}</p>}
-          {errorMessage && <p role="alert">{errorMessage}</p>}
+      <div className="botanical-layer" aria-hidden="true">
+        <img src={coffeeBotanical} alt="" />
+      </div>
+      <main id="main-content" className="main-layout">
+        <section id="registration-form" className="panel registration-card" aria-labelledby="registration-heading">
+          <div className="section-heading">
+            <h1 id="registration-heading">Registro de ingreso</h1>
+          </div>
+          {successMessage && <p className="status-message" role="status">{successMessage}</p>}
+          {errorMessage && <p className="error-message" role="alert">{errorMessage}</p>}
           <RegistrationForm onSubmit={handleSubmit} isSaving={isSaving} />
         </section>
         <RecentEntries entries={entries} />
       </main>
-    </>
+    </div>
   )
 }

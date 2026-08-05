@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" aria-hidden="true" focusable="false">
+  <ellipse cx="120" cy="80" rx="113" ry="73" fill="#f8f1e4" stroke="#19452f" stroke-width="5"/>
+  <ellipse cx="120" cy="80" rx="103" ry="63" fill="none" stroke="#286044" stroke-width="1.5"/>
+  <path d="M91 91c13-26 34-38 58-41-5 24-19 42-47 49" fill="#286044"/>
+  <path d="M98 95c16-17 30-28 48-39" fill="none" stroke="#f8f1e4" stroke-linecap="round" stroke-width="2.5"/>
+  <path d="M115 73c-3 7-5 13-5 20M128 63c-2 6-3 12-3 18" fill="none" stroke="#f8f1e4" stroke-linecap="round" stroke-width="1.8"/>
+  <path d="M103 97c14 1 28-2 40-9" fill="none" stroke="#19452f" stroke-linecap="round" stroke-width="2.5"/>
+  <circle cx="147" cy="88" r="8.5" fill="#a74d3a" stroke="#6a4635" stroke-width="2"/>
+  <circle cx="159" cy="98" r="8.5" fill="#a74d3a" stroke="#6a4635" stroke-width="2"/>
+  <circle cx="143" cy="104" r="8.5" fill="#a74d3a" stroke="#6a4635" stroke-width="2"/>
+  <path d="M145 87c1-7 5-12 11-16M158 96c2-10 1-17-2-25M143 102c2-12 7-23 13-31" fill="none" stroke="#6a4635" stroke-linecap="round" stroke-width="2.5"/>
+  <text x="120" y="133" fill="#19452f" font-family="Georgia, serif" font-size="14" font-weight="700" letter-spacing="2.4" text-anchor="middle">LLUVIAS DEL VALLE</text>
+</svg>
