@@ -87,9 +87,17 @@ function getFieldDescribedBy(error: string | undefined, field: ErrorField): stri
   return error ? getErrorId(field) : undefined
 }
 
+function parseGroupMembers(groupMembersText: string): string[] {
+  return groupMembersText
+    .split(/\r?\n/)
+    .map((member) => member.trim())
+    .filter(Boolean)
+}
+
 export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) {
   const [values, setValues] = useState<FormValues>(createInitialValues)
   const [errors, setErrors] = useState<FormErrors>({})
+  const previewGroupMembers = parseGroupMembers(values.groupMembersText)
 
   const updateValue = <Key extends keyof FormValues>(key: Key, value: FormValues[Key]) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -109,10 +117,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
     const identification = values.identification.trim()
     const visitDate = values.visitDate.trim()
     const nationality = values.nationality.trim()
-    const groupMembers = values.groupMembersText
-      .split(/\r?\n/)
-      .map((member) => member.trim())
-      .filter(Boolean)
+    const groupMembers = parseGroupMembers(values.groupMembersText)
 
     const nextErrors: FormErrors = {}
 
@@ -282,14 +287,27 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
         <div className="group-fields">
           <div className="form-field">
             <label htmlFor="group-members">Nombres del grupo</label>
+            <p className="field-help" id="group-members-help">
+              Agrega cada integrante en una línea distinta. Presiona Enter después de cada nombre para verlo en la lista.
+            </p>
             <textarea
               id="group-members"
               value={values.groupMembersText}
               maxLength={500}
               onChange={(event) => updateValue('groupMembersText', event.target.value)}
               aria-invalid={Boolean(errors.groupMembers)}
-              aria-describedby={getFieldDescribedBy(errors.groupMembers, 'groupMembers')}
+              aria-describedby={[
+                'group-members-help',
+                getFieldDescribedBy(errors.groupMembers, 'groupMembers'),
+              ].filter(Boolean).join(' ')}
             />
+            {previewGroupMembers.length > 0 && (
+              <ol className="group-members-preview" aria-label="Integrantes agregados">
+                {previewGroupMembers.map((member, index) => (
+                  <li key={`${member}-${index}`}>{member}</li>
+                ))}
+              </ol>
+            )}
           </div>
         </div>
       )}

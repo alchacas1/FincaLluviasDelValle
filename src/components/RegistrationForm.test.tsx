@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -67,7 +67,9 @@ describe('RegistrationForm', () => {
     expect(screen.getByLabelText('Nombres del grupo')).toHaveAttribute('maxLength', '500')
 
     await fillBaseFields(user)
-    await user.type(screen.getByLabelText('Nombres del grupo'), '  Eva  {enter}{enter} Mateo ')
+    fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
+      target: { value: '  Eva  \n\n Mateo ' },
+    })
     await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
 
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
@@ -78,6 +80,27 @@ describe('RegistrationForm', () => {
       groupMembers: ['Eva', 'Mateo'],
     }))
     expect(onSubmit.mock.calls[0][0]).not.toHaveProperty('responsibleName')
+  })
+
+  it('shows group member instructions and a numbered preview after names are entered', async () => {
+    render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('radio', { name: 'Grupo' }))
+
+    expect(screen.getByText('Agrega cada integrante en una línea distinta. Presiona Enter después de cada nombre para verlo en la lista.')).toBeVisible()
+
+    fireEvent.change(screen.getByLabelText('Nombres del grupo'), {
+      target: { value: 'Alvaro Chaves Cascante\njuanito mora perez\nalejandro perez sandoval' },
+    })
+
+    const membersPreview = screen.getByRole('list', { name: 'Integrantes agregados' })
+    const listedMembers = within(membersPreview).getAllByRole('listitem')
+
+    expect(listedMembers).toHaveLength(3)
+    expect(listedMembers[0]).toHaveTextContent('Alvaro Chaves Cascante')
+    expect(listedMembers[1]).toHaveTextContent('juanito mora perez')
+    expect(listedMembers[2]).toHaveTextContent('alejandro perez sandoval')
   })
 
   it('keeps completed values when saving fails', async () => {
