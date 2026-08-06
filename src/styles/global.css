@@ -56,6 +56,7 @@ a { color: inherit; }
 .app-shell {
   position: relative;
   min-height: 100vh;
+  padding-top: 112px;
   overflow: hidden;
 }
 
@@ -74,18 +75,23 @@ a { color: inherit; }
 }
 
 .site-header {
-  position: relative;
-  z-index: 2;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
   min-height: 112px;
   border-bottom: 1px solid rgb(255 253 247 / 18%);
   background: var(--forest-950);
   color: var(--cream-50);
+  backdrop-filter: blur(14px);
 }
 
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   width: min(100% - 64px, 1280px);
   min-height: 112px;
   margin-inline: auto;
@@ -139,9 +145,26 @@ a { color: inherit; }
   display: flex;
   flex-shrink: 0;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .site-header {
+    min-height: auto;
+  }
+
+  .header-inner {
+    align-items: flex-start;
+    padding-block: 18px;
+    gap: 18px;
+  }
+
+  .site-header nav {
+    width: 100%;
+  }
 }
 
 .site-header nav button,
