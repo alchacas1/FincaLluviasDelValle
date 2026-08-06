@@ -9,7 +9,11 @@ import useToast from './hooks/useToast'
 import { visitorStorage } from './services/visitorStorage'
 import type { VisitorDraft, VisitorEntry } from './types/visitor'
 
-export function App() {
+interface AppProps {
+  onExit?: () => void
+}
+
+export function App({ onExit }: AppProps = {}) {
   const [entries, setEntries] = useState<VisitorEntry[]>([])
   const [activeView, setActiveView] = useState<AppView>('registration')
   const [isSaving, setIsSaving] = useState(false)
@@ -49,7 +53,7 @@ export function App() {
 
   return (
     <div className="app-shell">
-      <Header activeView={activeView} onNavigate={setActiveView} />
+      <Header activeView={activeView} onNavigate={setActiveView} onExit={onExit} />
       <div className="botanical-layer" aria-hidden="true">
         <img src={coffeeBotanical} alt="" />
       </div>

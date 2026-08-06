@@ -1018,6 +1018,70 @@ a:focus-visible {
   line-height: 1.35;
 }
 
+.auth-screen,
+.maintenance-screen {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 100vh;
+  padding: 48px 24px;
+  place-items: center;
+}
+
+.auth-card,
+.maintenance-card {
+  width: min(100%, 560px);
+  padding: clamp(28px, 4vw, 44px);
+  border: 1px solid rgb(222 210 191 / 88%);
+  border-radius: 22px;
+  background: rgb(255 253 247 / 94%);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.auth-screen h1,
+.maintenance-screen h1 {
+  margin-bottom: 12px;
+}
+
+.maintenance-eyebrow {
+  margin-bottom: 10px;
+  color: var(--coffee-700);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.auth-mark {
+  width: 96px;
+  height: 72px;
+  margin-bottom: 18px;
+  object-fit: contain;
+}
+
+.primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--forest-950);
+  color: var(--cream-50);
+  font-weight: 700;
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+}
+
+.primary-action:disabled {
+  opacity: 0.75;
+}
+
 @media (max-width: 980px) {
   .main-layout { grid-template-columns: minmax(0, 1fr); }
   .recent-card { order: 2; }
@@ -1046,6 +1110,16 @@ a:focus-visible {
   .group-member-add-grid,
   .history-filters,
   .history-details { grid-template-columns: minmax(0, 1fr); }
+
+  .auth-screen,
+  .maintenance-screen {
+    padding: 24px 16px;
+  }
+
+  .auth-card,
+  .maintenance-card {
+    padding: 24px 20px;
+  }
 
   .group-member-add-card,
   .group-members-panel { padding: 18px; }

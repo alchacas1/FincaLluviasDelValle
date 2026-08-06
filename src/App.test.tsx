@@ -120,11 +120,11 @@ describe('App', () => {
     expect(screen.getByText('Mostrando 6 de 6 registros')).toBeVisible()
   })
 
-  it('keeps information disabled in the navigation', async () => {
+  it('shows the exit action in the navigation', async () => {
     render(<App />)
 
     await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
 
-    expect(screen.getByText('Información')).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('button', { name: 'Salir' })).toBeVisible()
   })
 })
