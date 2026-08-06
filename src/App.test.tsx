@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
+import useToast from './hooks/useToast'
 import { visitorStorage } from './services/visitorStorage'
 import type { VisitorEntry } from './types/visitor'
 
@@ -11,6 +12,14 @@ vi.mock('./services/visitorStorage', () => ({
     list: vi.fn(async () => []),
     create: vi.fn(),
   },
+}))
+
+const showToast = vi.fn()
+
+vi.mock('./hooks/useToast', () => ({
+  default: vi.fn(() => ({
+    showToast,
+  })),
 }))
 
 function createEntry(index: number): VisitorEntry {
@@ -55,9 +64,12 @@ async function fillAndSubmitIndividualVisitor() {
 }
 
 describe('App', () => {
+  const mockedUseToast = vi.mocked(useToast)
+
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(visitorStorage.list).mockResolvedValue([])
+    mockedUseToast.mockReturnValue({ showToast })
   })
 
   it('saves a valid visitor, refreshes recent entries and announces success', async () => {
@@ -67,7 +79,7 @@ describe('App', () => {
     await fillAndSubmitIndividualVisitor()
 
     expect(visitorStorage.create).toHaveBeenCalledOnce()
-    expect(await screen.findByText('Ingreso registrado correctamente.')).toBeVisible()
+    expect(showToast).toHaveBeenCalledWith('Ingreso registrado correctamente.', 'success')
     expect(screen.getByText('Ana Perez Solis')).toBeVisible()
   })
 
@@ -77,8 +89,17 @@ describe('App', () => {
     render(<App />)
     await fillAndSubmitIndividualVisitor()
 
-    expect(await screen.findByText('No fue posible guardar el registro.')).toBeVisible()
+    expect(showToast).toHaveBeenCalledWith('No fue posible guardar el registro.', 'error')
     expect(screen.queryByText('Ingreso registrado correctamente.')).not.toBeInTheDocument()
+  })
+
+  it('announces a storage error while loading entries', async () => {
+    vi.mocked(visitorStorage.list).mockRejectedValue(new Error('No fue posible cargar los ingresos registrados.'))
+
+    render(<App />)
+
+    await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
+    expect(showToast).toHaveBeenCalledWith('No fue posible cargar los ingresos registrados.', 'error')
   })
 
   it('navigates to history and shows all stored records', async () => {

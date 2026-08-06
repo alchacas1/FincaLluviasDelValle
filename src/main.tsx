@@ -7,10 +7,13 @@ import '@fontsource/dm-sans/latin-600.css'
 import '@fontsource/dm-sans/latin-700.css'
 
 import { App } from './App'
+import { Layout } from './layout'
 import './styles/global.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Layout>
+      <App />
+    </Layout>
   </StrictMode>,
 )

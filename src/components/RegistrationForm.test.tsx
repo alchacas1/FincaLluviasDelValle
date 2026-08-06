@@ -1,9 +1,18 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import useToast from '../hooks/useToast'
 import { getLocalDateInputValue } from '../utils/date'
 import { RegistrationForm } from './RegistrationForm'
+
+const showToast = vi.fn()
+
+vi.mock('../hooks/useToast', () => ({
+  default: vi.fn(() => ({
+    showToast,
+  })),
+}))
 
 async function fillBaseFields(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Nombre'), 'Ana')
@@ -16,6 +25,13 @@ async function fillBaseFields(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('RegistrationForm', () => {
+  const mockedUseToast = vi.mocked(useToast)
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockedUseToast.mockReturnValue({ showToast })
+  })
+
   it('starts as adult, individual and today', () => {
     render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
 
@@ -36,6 +52,13 @@ describe('RegistrationForm', () => {
     expect(screen.getByText('Ingresa el segundo apellido.')).toBeVisible()
     expect(screen.getByText('Ingresa la identificación.')).toBeVisible()
     expect(screen.getByText('Selecciona la nacionalidad.')).toBeVisible()
+    expect(showToast.mock.calls).toEqual([
+      ['Ingresa el nombre.', 'warning'],
+      ['Ingresa el primer apellido.', 'warning'],
+      ['Ingresa el segundo apellido.', 'warning'],
+      ['Ingresa la identificación.', 'warning'],
+      ['Selecciona la nacionalidad.', 'warning'],
+    ])
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
@@ -127,6 +150,18 @@ describe('RegistrationForm', () => {
     await user.click(screen.getByRole('button', { name: 'Registrar ingreso' }))
 
     expect((await screen.findAllByText('Agrega al menos un integrante del grupo.'))[0]).toBeVisible()
+    expect(showToast.mock.calls).toContainEqual(['Agrega al menos un integrante del grupo.', 'warning'])
+  })
+
+  it('warns when trying to add an incomplete group member', async () => {
+    const user = userEvent.setup()
+    render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
+
+    await user.click(screen.getByRole('radio', { name: 'Grupo' }))
+    await user.click(screen.getByRole('button', { name: 'Agregar integrante' }))
+
+    expect(screen.getByText('Ingresa el nombre completo y la cédula del integrante.')).toBeVisible()
+    expect(showToast).toHaveBeenCalledWith('Ingresa el nombre completo y la cédula del integrante.', 'warning')
   })
 
   it('keeps completed values when saving fails', async () => {

@@ -5,6 +5,7 @@ import { Header, type AppView } from './components/Header'
 import { HistoryView } from './components/HistoryView'
 import { RecentEntries } from './components/RecentEntries'
 import { RegistrationForm } from './components/RegistrationForm'
+import useToast from './hooks/useToast'
 import { visitorStorage } from './services/visitorStorage'
 import type { VisitorDraft, VisitorEntry } from './types/visitor'
 
@@ -12,8 +13,7 @@ export function App() {
   const [entries, setEntries] = useState<VisitorEntry[]>([])
   const [activeView, setActiveView] = useState<AppView>('registration')
   const [isSaving, setIsSaving] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
+  const { showToast } = useToast()
 
   useEffect(() => {
     let isActive = true
@@ -23,26 +23,24 @@ export function App() {
         if (isActive) setEntries(storedEntries)
       })
       .catch(() => {
-        if (isActive) setErrorMessage('No fue posible cargar los ingresos registrados.')
+        if (isActive) showToast('No fue posible cargar los ingresos registrados.', 'error')
       })
 
     return () => {
       isActive = false
     }
-  }, [])
+  }, [showToast])
 
   const handleSubmit = async (draft: VisitorDraft): Promise<boolean> => {
     setIsSaving(true)
-    setSuccessMessage('')
-    setErrorMessage('')
 
     try {
       const entry = await visitorStorage.create(draft)
       setEntries((currentEntries) => [entry, ...currentEntries])
-      setSuccessMessage('Ingreso registrado correctamente.')
+      showToast('Ingreso registrado correctamente.', 'success')
       return true
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'No fue posible guardar el registro.')
+      showToast(error instanceof Error ? error.message : 'No fue posible guardar el registro.', 'error')
       return false
     } finally {
       setIsSaving(false)
@@ -62,8 +60,6 @@ export function App() {
               <div className="section-heading">
                 <h1 id="registration-heading">Registro de ingreso</h1>
               </div>
-              {successMessage && <p className="status-message" role="status">{successMessage}</p>}
-              {errorMessage && <p className="error-message" role="alert">{errorMessage}</p>}
               <RegistrationForm onSubmit={handleSubmit} isSaving={isSaving} />
             </section>
             <RecentEntries entries={entries} />

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Baby, Plus, ShieldCheck, Trash2, UserRound, UserRoundPlus, UsersRound } from 'lucide-react'
 
 import type { EntryMode, GroupMember, VisitorDraft, VisitorType } from '../types/visitor'
+import useToast from '../hooks/useToast'
 import { getGroupMemberInitials } from '../utils/groupMembers'
 import { getLocalDateInputValue } from '../utils/date'
 
@@ -94,10 +95,15 @@ function getFieldDescribedBy(error: string | undefined, field: ErrorField): stri
   return error ? getErrorId(field) : undefined
 }
 
+function showValidationToasts(messages: string[], showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning', duration?: number) => void) {
+  messages.forEach((message) => showToast(message, 'warning'))
+}
+
 export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) {
   const [values, setValues] = useState<FormValues>(createInitialValues)
   const [errors, setErrors] = useState<FormErrors>({})
   const [memberError, setMemberError] = useState('')
+  const { showToast } = useToast()
 
   const updateValue = <Key extends keyof FormValues>(key: Key, value: FormValues[Key]) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -115,6 +121,7 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
 
     if (!fullName || !identification) {
       setMemberError('Ingresa el nombre completo y la cédula del integrante.')
+      showToast('Ingresa el nombre completo y la cédula del integrante.', 'warning')
       return
     }
 
@@ -170,7 +177,10 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
     }
 
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    if (Object.keys(nextErrors).length > 0) {
+      showValidationToasts(Object.values(nextErrors), showToast)
+      return
+    }
 
     const wasSaved = await onSubmit({
       firstName,
