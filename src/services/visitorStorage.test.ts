@@ -1,4 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('./firebase', () => ({
+  getFirebaseDb: vi.fn(),
+  isFirebaseConfigured: vi.fn(() => false),
+}))
+
 import { STORAGE_KEY, visitorStorage } from './visitorStorage'
 
 const draft = {
