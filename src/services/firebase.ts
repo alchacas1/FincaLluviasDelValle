@@ -1,4 +1,5 @@
-import { getApp, getApps, initializeApp } from 'firebase/app'
+import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app'
+import { getAuth, type Auth } from 'firebase/auth'
 import { getFirestore, type Firestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -10,22 +11,38 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
+let appInstance: FirebaseApp | null = null
+let authInstance: Auth | null = null
 let firestoreInstance: Firestore | null = null
 
 export function isFirebaseConfigured(): boolean {
   return Object.values(firebaseConfig).every((value) => typeof value === 'string' && value.length > 0)
 }
 
-export function getFirebaseDb(): Firestore {
+function getFirebaseApp(): FirebaseApp {
   if (!isFirebaseConfigured()) {
     throw new Error('Firebase no esta configurado. Revisa las variables VITE_FIREBASE_* en .env.')
   }
 
-  if (firestoreInstance) {
-    return firestoreInstance
+  if (!appInstance) {
+    appInstance = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
   }
 
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-  firestoreInstance = getFirestore(app)
+  return appInstance
+}
+
+export function getFirebaseAuth(): Auth {
+  if (!authInstance) {
+    authInstance = getAuth(getFirebaseApp())
+  }
+
+  return authInstance
+}
+
+export function getFirebaseDb(): Firestore {
+  if (!firestoreInstance) {
+    firestoreInstance = getFirestore(getFirebaseApp())
+  }
+
   return firestoreInstance
 }
