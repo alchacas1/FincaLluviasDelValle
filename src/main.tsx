@@ -8,15 +8,18 @@ import '@fontsource/dm-sans/latin-600.css'
 import '@fontsource/dm-sans/latin-700.css'
 
 import { AppRoutes } from './AppRoutes'
+import { AuthProvider } from './auth/AuthContext'
 import { Layout } from './layout'
 import './styles/global.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <Layout>
-        <AppRoutes />
-      </Layout>
+      <AuthProvider>
+        <Layout>
+          <AppRoutes />
+        </Layout>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )
