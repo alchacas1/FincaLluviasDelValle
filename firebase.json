@@ -1,4 +1,21 @@
 {
+  "firestore": {
+    "database": "(default)",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Finca Lluvias del Valle",
+        "supportEmail": "busticketsuna@gmail.com",
+        "authorizedRedirectUris": [
+          "https://finca-lluvias-del-valle.firebaseapp.com/__/auth/handler"
+        ]
+      }
+    }
+  },
   "hosting": {
     "public": "dist",
     "ignore": [

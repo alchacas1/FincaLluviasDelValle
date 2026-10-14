@@ -1,0 +1,103 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Assumed data model:
+    // usuarios/{uid}: uid, email, optional displayName, providers,
+    // createdAt, lastLoginAt. Private to the matching authenticated UID.
+    // registroVisitas/{registroId}: id, ownerUid, firstName,
+    // firstLastName, secondLastName, identification, visitDate,
+    // nationality, visitorType, entryMode, groupMembers, createdAt.
+    // Visits are created/read only by ownerUid; client updates/deletes are denied.
+    function signedIn() { return request.auth != null; }
+    function owns(userId) { return signedIn() && request.auth.uid == userId; }
+    function validOptionalDisplayName(data) {
+      return !('displayName' in data) ||
+        (data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100);
+    }
+    function validProviders(providers) {
+      return providers is list && providers.size() > 0 && providers.size() <= 2 &&
+        providers.toSet().hasOnly(['password', 'google.com']);
+    }
+    function validUser(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'providers', 'createdAt', 'lastLoginAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'providers', 'createdAt', 'lastLoginAt']) &&
+        data.uid is string && data.uid == userId && data.uid == request.auth.uid &&
+        data.email is string && data.email.size() > 3 && data.email.size() <= 254 &&
+        data.email == request.auth.token.email &&
+        validOptionalDisplayName(data) && validProviders(data.providers) &&
+        data.createdAt is timestamp && data.lastLoginAt is timestamp;
+    }
+    function validMember(member) {
+      return member is map &&
+        member.keys().hasAll(['id', 'fullName', 'identification', 'visitorType']) &&
+        member.keys().hasOnly(['id', 'fullName', 'identification', 'visitorType']) &&
+        member.id is string && member.id.size() > 0 && member.id.size() <= 36 &&
+        member.fullName is string && member.fullName.size() > 0 && member.fullName.size() <= 120 &&
+        member.identification is string && member.identification.size() > 0 && member.identification.size() <= 50 &&
+        member.visitorType in ['child', 'adult'];
+    }
+    function validMembers(members) {
+      return members is list && members.size() <= 10 &&
+        (members.size() <= 0 || validMember(members[0])) &&
+        (members.size() <= 1 || validMember(members[1])) &&
+        (members.size() <= 2 || validMember(members[2])) &&
+        (members.size() <= 3 || validMember(members[3])) &&
+        (members.size() <= 4 || validMember(members[4])) &&
+        (members.size() <= 5 || validMember(members[5])) &&
+        (members.size() <= 6 || validMember(members[6])) &&
+        (members.size() <= 7 || validMember(members[7])) &&
+        (members.size() <= 8 || validMember(members[8])) &&
+        (members.size() <= 9 || validMember(members[9]));
+    }
+    function validVisit(data, visitId) {
+      return data.keys().hasAll([
+          'id', 'ownerUid', 'firstName', 'firstLastName', 'secondLastName',
+          'identification', 'visitDate', 'nationality', 'visitorType',
+          'entryMode', 'groupMembers', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'ownerUid', 'firstName', 'firstLastName', 'secondLastName',
+          'identification', 'visitDate', 'nationality', 'visitorType',
+          'entryMode', 'groupMembers', 'createdAt'
+        ]) &&
+        data.id is string && data.id == visitId && data.id.size() <= 36 &&
+        data.ownerUid is string && data.ownerUid == request.auth.uid &&
+        data.firstName is string && data.firstName.size() > 0 && data.firstName.size() <= 80 &&
+        data.firstLastName is string && data.firstLastName.size() > 0 && data.firstLastName.size() <= 80 &&
+        data.secondLastName is string && data.secondLastName.size() > 0 && data.secondLastName.size() <= 80 &&
+        data.identification is string && data.identification.size() > 0 && data.identification.size() <= 50 &&
+        data.visitDate is string && data.visitDate.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.nationality is string && data.nationality.size() > 0 && data.nationality.size() <= 80 &&
+        data.visitorType in ['child', 'adult'] && data.entryMode in ['individual', 'group'] &&
+        validMembers(data.groupMembers) &&
+        ((data.entryMode == 'individual' && data.groupMembers.size() == 0) ||
+         (data.entryMode == 'group' && data.groupMembers.size() > 0)) &&
+        data.createdAt is timestamp && data.createdAt == request.time;
+    }
+
+    match /usuarios/{userId} {
+      allow get: if owns(userId);
+      allow list: if false;
+      allow create: if owns(userId) && validUser(request.resource.data, userId) &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.lastLoginAt == request.time;
+      allow update: if owns(userId) && validUser(request.resource.data, userId) &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.lastLoginAt == request.time &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['email', 'displayName', 'providers', 'lastLoginAt']);
+      allow delete: if false;
+    }
+
+    match /registroVisitas/{visitId} {
+      allow get, list: if signedIn() && resource.data.ownerUid == request.auth.uid;
+      allow create: if signedIn() && validVisit(request.resource.data, visitId);
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
