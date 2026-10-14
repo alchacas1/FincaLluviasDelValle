@@ -10,10 +10,11 @@ import { visitorStorage } from './services/visitorStorage'
 import type { VisitorDraft, VisitorEntry } from './types/visitor'
 
 interface AppProps {
+  ownerUid: string
   onExit: () => Promise<void>
 }
 
-export function App({ onExit }: AppProps) {
+export function App({ ownerUid, onExit }: AppProps) {
   const [entries, setEntries] = useState<VisitorEntry[]>([])
   const [activeView, setActiveView] = useState<AppView>('registration')
   const [isSaving, setIsSaving] = useState(false)
@@ -23,7 +24,7 @@ export function App({ onExit }: AppProps) {
   useEffect(() => {
     let isActive = true
 
-    void visitorStorage.list()
+    void visitorStorage.list(ownerUid)
       .then((storedEntries) => {
         if (isActive) setEntries(storedEntries)
       })
@@ -34,13 +35,13 @@ export function App({ onExit }: AppProps) {
     return () => {
       isActive = false
     }
-  }, [showToast])
+  }, [ownerUid, showToast])
 
   const handleSubmit = async (draft: VisitorDraft): Promise<boolean> => {
     setIsSaving(true)
 
     try {
-      const entry = await visitorStorage.create(draft)
+      const entry = await visitorStorage.create(ownerUid, draft)
       setEntries((currentEntries) => [entry, ...currentEntries])
       showToast('Ingreso registrado correctamente.', 'success')
       return true

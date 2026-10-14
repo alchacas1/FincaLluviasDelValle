@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -162,6 +162,26 @@ describe('RegistrationForm', () => {
 
     expect(screen.getByText('Ingresa el nombre completo y la cédula del integrante.')).toBeVisible()
     expect(showToast).toHaveBeenCalledWith('Ingresa el nombre completo y la cédula del integrante.', 'warning')
+  })
+
+  it('limits a group to ten members', async () => {
+    const user = userEvent.setup()
+    render(<RegistrationForm onSubmit={vi.fn().mockResolvedValue(true)} isSaving={false} />)
+    await user.click(screen.getByRole('radio', { name: 'Grupo' }))
+
+    for (let index = 1; index <= 10; index += 1) {
+      fireEvent.change(screen.getByLabelText('Nombre completo'), { target: { value: `Integrante ${index}` } })
+      fireEvent.change(screen.getByLabelText('Cédula del integrante'), { target: { value: `ced-${index}` } })
+      await user.click(screen.getByRole('button', { name: 'Agregar integrante' }))
+    }
+
+    fireEvent.change(screen.getByLabelText('Nombre completo'), { target: { value: 'Integrante 11' } })
+    fireEvent.change(screen.getByLabelText('Cédula del integrante'), { target: { value: 'ced-11' } })
+    await user.click(screen.getByRole('button', { name: 'Agregar integrante' }))
+
+    expect(screen.getByRole('heading', { name: 'Integrantes agregados (10)' })).toBeVisible()
+    expect(screen.getByRole('alert')).toHaveTextContent('Puedes agregar un maximo de 10 integrantes.')
+    expect(showToast).toHaveBeenCalledWith('Puedes agregar un maximo de 10 integrantes.', 'warning')
   })
 
   it('keeps completed values when saving fails', async () => {

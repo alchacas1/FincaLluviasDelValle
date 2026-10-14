@@ -7,6 +7,7 @@ import { RecentEntries } from './RecentEntries'
 function createEntry(index: number, entryMode: VisitorEntry['entryMode'] = 'individual'): VisitorEntry {
   return {
     id: `visitor-${index}`,
+    ownerUid: 'uid-a',
     firstName: 'Visitante',
     firstLastName: `${index}`,
     secondLastName: 'Solis',

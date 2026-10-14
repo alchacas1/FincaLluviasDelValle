@@ -8,11 +8,16 @@ vi.mock('./auth/AuthRoute', () => ({
 }))
 
 vi.mock('./auth/AuthContext', () => ({
-  useAuth: () => ({ logout: vi.fn() }),
+  useAuth: () => ({ user: { uid: 'uid-a' }, logout: vi.fn() }),
 }))
 
 vi.mock('./App', () => ({
-  App: () => <div>Records page</div>,
+  App: ({ ownerUid }: { ownerUid: string }) => (
+    <>
+      <div>Records page</div>
+      <div>{`Owner ${ownerUid}`}</div>
+    </>
+  ),
 }))
 
 vi.mock('./pages/LoginPage', () => ({
@@ -40,5 +45,11 @@ describe('AppRoutes', () => {
     renderAt('/login')
 
     expect(screen.getByText('Login page')).toBeVisible()
+  })
+
+  it('supplies the authenticated user to the records application', () => {
+    renderAt('/registros')
+
+    expect(screen.getByText('Owner uid-a')).toBeVisible()
   })
 })

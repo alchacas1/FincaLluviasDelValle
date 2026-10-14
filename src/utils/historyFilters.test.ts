@@ -11,6 +11,7 @@ function createEntry(
 ): VisitorEntry {
   return {
     id,
+    ownerUid: 'uid-a',
     firstName: id,
     firstLastName: 'Chaves',
     secondLastName: 'Cascante',

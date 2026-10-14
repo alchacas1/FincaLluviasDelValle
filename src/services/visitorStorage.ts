@@ -1,97 +1,136 @@
-import type { VisitorDraft, VisitorEntry } from '../types/visitor'
-import { collection, doc, getDocs, orderBy, query, setDoc } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from 'firebase/firestore'
 
-import { getFirebaseDb, isFirebaseConfigured } from './firebase'
+import { MAX_GROUP_MEMBERS } from '../domain/visitorLimits'
+import type { GroupMemberEntry, VisitorDraft, VisitorEntry, VisitorType } from '../types/visitor'
+import { getFirebaseDb } from './firebase'
 
-export const STORAGE_KEY = 'finca-lluvias:visitors:v1'
 export const VISITS_COLLECTION = 'registroVisitas'
 
-function readEntries(): VisitorEntry[] {
-  try {
-    const storedEntries = localStorage.getItem(STORAGE_KEY)
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
 
-    if (storedEntries === null) {
-      return []
+function isVisitorType(value: unknown): value is VisitorType {
+  return value === 'adult' || value === 'child'
+}
+
+function isGroupMember(value: unknown): value is GroupMemberEntry {
+  if (typeof value === 'string') return value.trim().length > 0
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.fullName === 'string'
+    && typeof value.identification === 'string'
+    && isVisitorType(value.visitorType)
+}
+
+function toIsoDate(value: unknown): string | null {
+  try {
+    if (typeof value === 'string') {
+      const date = new Date(value)
+      return Number.isNaN(date.getTime()) ? null : date.toISOString()
     }
 
-    const entries: unknown = JSON.parse(storedEntries)
-    return Array.isArray(entries) ? (entries as VisitorEntry[]) : []
+    if (isRecord(value) && typeof value.toDate === 'function') {
+      const date = value.toDate()
+      return date instanceof Date && !Number.isNaN(date.getTime()) ? date.toISOString() : null
+    }
   } catch {
-    return []
+    return null
+  }
+
+  return null
+}
+
+function mapRemoteEntry(documentId: string, value: unknown, expectedOwnerUid: string): VisitorEntry | null {
+  if (!isRecord(value)) return null
+
+  const id = typeof value.id === 'string' && value.id.length > 0 ? value.id : documentId
+  const createdAt = toIsoDate(value.createdAt)
+  const groupMembers = value.groupMembers
+
+  if (
+    !id
+    || value.ownerUid !== expectedOwnerUid
+    || typeof value.firstName !== 'string'
+    || typeof value.firstLastName !== 'string'
+    || typeof value.secondLastName !== 'string'
+    || typeof value.identification !== 'string'
+    || typeof value.visitDate !== 'string'
+    || typeof value.nationality !== 'string'
+    || !isVisitorType(value.visitorType)
+    || (value.entryMode !== 'individual' && value.entryMode !== 'group')
+    || !Array.isArray(groupMembers)
+    || groupMembers.length > MAX_GROUP_MEMBERS
+    || !groupMembers.every(isGroupMember)
+    || !createdAt
+  ) {
+    return null
+  }
+
+  return {
+    id,
+    ownerUid: expectedOwnerUid,
+    firstName: value.firstName,
+    firstLastName: value.firstLastName,
+    secondLastName: value.secondLastName,
+    identification: value.identification,
+    visitDate: value.visitDate,
+    nationality: value.nationality,
+    visitorType: value.visitorType,
+    entryMode: value.entryMode,
+    groupMembers,
+    createdAt,
   }
 }
 
-function sortNewestFirst(entries: VisitorEntry[]): VisitorEntry[] {
-  return [...entries].sort((first, second) => second.createdAt.localeCompare(first.createdAt))
-}
-
-function persistLocal(entries: VisitorEntry[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-}
-
 export const visitorStorage = {
-  async list(): Promise<VisitorEntry[]> {
-    const localEntries = sortNewestFirst(readEntries())
-
-    if (!isFirebaseConfigured()) {
-      return localEntries
-    }
-
+  async list(ownerUid: string): Promise<VisitorEntry[]> {
     try {
-      const database = getFirebaseDb()
-      const visitsRef = collection(database, VISITS_COLLECTION)
-      const visitsQuery = query(visitsRef, orderBy('createdAt', 'desc'))
+      const visitsQuery = query(
+        collection(getFirebaseDb(), VISITS_COLLECTION),
+        where('ownerUid', '==', ownerUid),
+        orderBy('createdAt', 'desc'),
+      )
       const snapshot = await getDocs(visitsQuery)
-      const remoteEntries = snapshot.docs
-        .map((entryDoc) => {
-          const data = entryDoc.data() as Partial<VisitorEntry>
 
-          return {
-            ...data,
-            id: typeof data.id === 'string' && data.id.length > 0 ? data.id : entryDoc.id,
-          } as VisitorEntry
-        })
-        .filter((entry) => typeof entry.createdAt === 'string' && entry.createdAt.length > 0)
-
-      const entries = sortNewestFirst(remoteEntries)
-
-      try {
-        persistLocal(entries)
-      } catch {
-        // Remote data already loaded; ignore local cache failures.
-      }
-
-      return entries
+      return snapshot.docs.map((entryDoc) => {
+        const entry = mapRemoteEntry(entryDoc.id, entryDoc.data(), ownerUid)
+        if (!entry) throw new Error('malformed-visitor-record')
+        return entry
+      })
     } catch {
-      return localEntries
+      throw new Error('No fue posible cargar los ingresos registrados.')
     }
   },
 
-  async create(draft: VisitorDraft): Promise<VisitorEntry> {
+  async create(ownerUid: string, draft: VisitorDraft): Promise<VisitorEntry> {
+    const id = crypto.randomUUID()
     const entry: VisitorEntry = {
       ...draft,
-      id: crypto.randomUUID(),
+      id,
+      ownerUid,
       createdAt: new Date().toISOString(),
-    }
-    const entries = sortNewestFirst([...readEntries(), entry])
-
-    if (isFirebaseConfigured()) {
-      try {
-        const database = getFirebaseDb()
-        await setDoc(doc(database, VISITS_COLLECTION, entry.id), entry)
-      } catch {
-        throw new Error('No fue posible guardar el registro.')
-      }
     }
 
     try {
-      persistLocal(entries)
+      await setDoc(doc(getFirebaseDb(), VISITS_COLLECTION, id), {
+        ...draft,
+        id,
+        ownerUid,
+        createdAt: serverTimestamp(),
+      })
+      return entry
     } catch {
-      if (!isFirebaseConfigured()) {
-        throw new Error('No fue posible guardar el registro.')
-      }
+      throw new Error('No fue posible guardar el registro.')
     }
-
-    return entry
   },
 }

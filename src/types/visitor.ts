@@ -24,6 +24,7 @@ export interface VisitorDraft {
 
 export interface VisitorEntry extends VisitorDraft {
   id: string
+  ownerUid: string
   createdAt: string
   name?: string
   responsibleName?: string

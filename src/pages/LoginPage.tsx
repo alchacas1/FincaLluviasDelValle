@@ -15,10 +15,6 @@ const authMessages: Record<string, string> = {
 
 type PendingAction = 'login' | 'register' | 'google' | null
 
-interface LoginPageProps {
-  onEnter?: () => void
-}
-
 export function getAuthErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error
     ? String(error.code)
@@ -34,7 +30,7 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-export function LoginPage(_props: LoginPageProps = {}) {
+export function LoginPage() {
   const { loginWithPassword, registerWithPassword, loginWithGoogle } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

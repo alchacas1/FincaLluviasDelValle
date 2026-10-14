@@ -1,6 +1,6 @@
 # Registro de visitantes - Finca Lluvias del Valle
 
-Aplicacion web para registrar visitantes de la finca, incluyendo visitas individuales y grupos, y consultar los ingresos recientes. Los registros se guardan en Firestore y se mantienen en cache local en el navegador.
+Aplicacion web para registrar visitantes de la finca, incluyendo visitas individuales y grupos, y consultar los ingresos recientes. Firebase Authentication controla el acceso y Firestore es la unica fuente de verdad para los registros.
 
 ## Requisitos
 
@@ -27,7 +27,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 ```
 
-Los registros se guardan en la coleccion de Firestore `registroVisitas`.
+Los perfiles privados se guardan en `usuarios/{uid}`. Los registros se guardan en la coleccion `registroVisitas` y cada documento incluye `ownerUid`, que vincula el registro con la cuenta autenticada y aisla sus consultas.
 
 Vite mostrara la direccion local de la aplicacion en la terminal. Por defecto suele ser `http://localhost:5173`.
 
@@ -49,13 +49,3 @@ npm run test:run  # ejecuta la suite de pruebas una vez
 npm run build     # genera la version de produccion en dist/
 npm run preview   # sirve localmente la version generada
 ```
-
-## Cache local
-
-Ademas del guardado en Firestore, los registros se reflejan en `localStorage` bajo la clave:
-
-```text
-finca-lluvias:visitors:v1
-```
-
-El almacenamiento pertenece al navegador y al origen donde se ejecuta la aplicacion. Limpiar los datos del sitio o usar otro navegador, perfil, puerto u origen puede mostrar una lista distinta o vacia.

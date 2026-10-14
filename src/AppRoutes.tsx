@@ -7,14 +7,16 @@ import { LoginPage } from './pages/LoginPage'
 
 export function AuthenticatedRecordsPage() {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
 
   const handleExit = async () => {
     await logout()
     navigate('/login', { replace: true })
   }
 
-  return <App onExit={handleExit} />
+  if (!user) return null
+
+  return <App key={user.uid} ownerUid={user.uid} onExit={handleExit} />
 }
 
 export function AppRoutes() {

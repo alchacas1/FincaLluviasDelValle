@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Baby, Plus, ShieldCheck, Trash2, UserRound, UserRoundPlus, UsersRound } from 'lucide-react'
 
+import { MAX_GROUP_MEMBERS } from '../domain/visitorLimits'
 import type { EntryMode, GroupMember, VisitorDraft, VisitorType } from '../types/visitor'
 import useToast from '../hooks/useToast'
 import { getGroupMemberInitials } from '../utils/groupMembers'
@@ -116,6 +117,13 @@ export function RegistrationForm({ onSubmit, isSaving }: RegistrationFormProps) 
   }
 
   const handleAddGroupMember = () => {
+    if (values.groupMembers.length >= MAX_GROUP_MEMBERS) {
+      const message = `Puedes agregar un maximo de ${MAX_GROUP_MEMBERS} integrantes.`
+      setMemberError(message)
+      showToast(message, 'warning')
+      return
+    }
+
     const fullName = values.memberFullName.trim()
     const identification = values.memberIdentification.trim()
 
