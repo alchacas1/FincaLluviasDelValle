@@ -10,13 +10,14 @@ import { visitorStorage } from './services/visitorStorage'
 import type { VisitorDraft, VisitorEntry } from './types/visitor'
 
 interface AppProps {
-  onExit?: () => void
+  onExit: () => Promise<void>
 }
 
-export function App({ onExit }: AppProps = {}) {
+export function App({ onExit }: AppProps) {
   const [entries, setEntries] = useState<VisitorEntry[]>([])
   const [activeView, setActiveView] = useState<AppView>('registration')
   const [isSaving, setIsSaving] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -51,9 +52,26 @@ export function App({ onExit }: AppProps = {}) {
     }
   }
 
+  const handleExit = async () => {
+    if (isSigningOut) return
+    setIsSigningOut(true)
+
+    try {
+      await onExit()
+    } catch {
+      showToast('No fue posible cerrar la sesion.', 'error')
+      setIsSigningOut(false)
+    }
+  }
+
   return (
     <div className="app-shell">
-      <Header activeView={activeView} onNavigate={setActiveView} onExit={onExit} />
+      <Header
+        activeView={activeView}
+        onNavigate={setActiveView}
+        onExit={handleExit}
+        isSigningOut={isSigningOut}
+      />
       <div className="botanical-layer" aria-hidden="true">
         <img src={coffeeBotanical} alt="" />
       </div>

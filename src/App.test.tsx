@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -65,17 +65,19 @@ async function fillAndSubmitIndividualVisitor() {
 
 describe('App', () => {
   const mockedUseToast = vi.mocked(useToast)
+  const onExit = vi.fn<() => Promise<void>>(async () => undefined)
 
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(visitorStorage.list).mockResolvedValue([])
     mockedUseToast.mockReturnValue({ showToast })
+    onExit.mockResolvedValue(undefined)
   })
 
   it('saves a valid visitor, refreshes recent entries and announces success', async () => {
     vi.mocked(visitorStorage.create).mockResolvedValue(savedEntry)
 
-    render(<App />)
+    render(<App onExit={onExit} />)
     await fillAndSubmitIndividualVisitor()
 
     expect(visitorStorage.create).toHaveBeenCalledOnce()
@@ -86,7 +88,7 @@ describe('App', () => {
   it('announces a storage failure without adding the visitor', async () => {
     vi.mocked(visitorStorage.create).mockRejectedValue(new Error('No fue posible guardar el registro.'))
 
-    render(<App />)
+    render(<App onExit={onExit} />)
     await fillAndSubmitIndividualVisitor()
 
     expect(showToast).toHaveBeenCalledWith('No fue posible guardar el registro.', 'error')
@@ -96,7 +98,7 @@ describe('App', () => {
   it('announces a storage error while loading entries', async () => {
     vi.mocked(visitorStorage.list).mockRejectedValue(new Error('No fue posible cargar los ingresos registrados.'))
 
-    render(<App />)
+    render(<App onExit={onExit} />)
 
     await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
     expect(showToast).toHaveBeenCalledWith('No fue posible cargar los ingresos registrados.', 'error')
@@ -106,7 +108,7 @@ describe('App', () => {
     const user = userEvent.setup()
     vi.mocked(visitorStorage.list).mockResolvedValue(Array.from({ length: 6 }, (_, index) => createEntry(index + 1)))
 
-    render(<App />)
+    render(<App onExit={onExit} />)
 
     await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
     expect(screen.getByRole('button', { name: 'Registro de ingreso' })).toHaveAttribute('aria-current', 'page')
@@ -121,10 +123,38 @@ describe('App', () => {
   })
 
   it('shows the exit action in the navigation', async () => {
-    render(<App />)
+    render(<App onExit={onExit} />)
 
     await waitFor(() => expect(visitorStorage.list).toHaveBeenCalledOnce())
 
     expect(screen.getByRole('button', { name: 'Salir' })).toBeVisible()
+  })
+
+  it('awaits the exit action and prevents duplicate sign-out attempts', async () => {
+    let resolveExit!: () => void
+    onExit.mockReturnValue(new Promise<void>((resolve) => {
+      resolveExit = resolve
+    }))
+    const user = userEvent.setup()
+    render(<App onExit={onExit} />)
+
+    await user.click(screen.getByRole('button', { name: 'Salir' }))
+
+    expect(onExit).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: 'Saliendo...' })).toBeDisabled()
+
+    await act(async () => resolveExit())
+  })
+
+  it('keeps the private screen mounted and reports a sign-out failure', async () => {
+    onExit.mockRejectedValue(new Error('network'))
+    const user = userEvent.setup()
+    render(<App onExit={onExit} />)
+
+    await user.click(screen.getByRole('button', { name: 'Salir' }))
+
+    expect(showToast).toHaveBeenCalledWith('No fue posible cerrar la sesion.', 'error')
+    expect(screen.getByRole('heading', { name: 'Registro de ingreso' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Salir' })).toBeEnabled()
   })
 })

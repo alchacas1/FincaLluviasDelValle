@@ -5,10 +5,11 @@ export type AppView = 'registration' | 'history'
 interface HeaderProps {
   activeView: AppView
   onNavigate: (view: AppView) => void
-  onExit?: () => void
+  onExit: () => Promise<void>
+  isSigningOut: boolean
 }
 
-export function Header({ activeView, onNavigate, onExit }: HeaderProps) {
+export function Header({ activeView, onNavigate, onExit, isSigningOut }: HeaderProps) {
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -36,8 +37,8 @@ export function Header({ activeView, onNavigate, onExit }: HeaderProps) {
           >
             Historial
           </button>
-          <button type="button" onClick={onExit}>
-            Salir
+          <button type="button" onClick={() => void onExit()} disabled={isSigningOut}>
+            {isSigningOut ? 'Saliendo...' : 'Salir'}
           </button>
         </nav>
       </div>
